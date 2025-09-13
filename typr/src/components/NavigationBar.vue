@@ -4,9 +4,9 @@ import { ref } from 'vue'
 const isDarkMode = ref(false)
 const savedTheme = localStorage.getItem('theme')
 
-if (savedTheme == 'dark') {
+if (savedTheme == 'dracula') {
   isDarkMode.value = true
-  document.documentElement.setAttribute('data-theme', 'dark')
+  document.documentElement.setAttribute('data-theme', 'dracula')
 } else {
   isDarkMode.value = false
   document.documentElement.setAttribute('data-theme', 'silk')
@@ -14,9 +14,9 @@ if (savedTheme == 'dark') {
 
 function toggleTheme() {
   isDarkMode.value = !isDarkMode.value
-  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'silk')
+  localStorage.setItem('theme', isDarkMode.value ? 'dracula' : 'silk')
   if (isDarkMode.value) {
-    document.documentElement.setAttribute('data-theme', 'dark')
+    document.documentElement.setAttribute('data-theme', 'dracula')
   } else {
     document.documentElement.setAttribute('data-theme', 'silk')
   }
@@ -24,7 +24,7 @@ function toggleTheme() {
 </script>
 
 <template>
-  <nav class="navbar bg-base-300 px-2 shadow-sm">
+  <nav class="mb-10 navbar bg-base-300 px-2 shadow-md select-none">
     <div class="navbar-start">
       <a class="btn text-xl btn-ghost">typr</a>
     </div>
@@ -34,7 +34,7 @@ function toggleTheme() {
         <li>
           <details>
             <summary>Library</summary>
-            <ul class="p-2">
+            <ul class="rounded-md bg-base-300 p-2 shadow-md">
               <li><a>Current Reads</a></li>
               <li><a>Shelf</a></li>
             </ul>
@@ -95,7 +95,7 @@ function toggleTheme() {
         </div>
         <ul
           tabindex="0"
-          class="dropdown-content menu z-1 mt-3 w-52 menu-md rounded-box bg-base-200 p-2 shadow"
+          class="dropdown-content menu z-1 mt-3 w-52 menu-md rounded-md bg-base-300 p-2 shadow-md"
         >
           <li><a>Home</a></li>
           <li>
@@ -112,4 +112,12 @@ function toggleTheme() {
   </nav>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* ul > li {
+  user-select: none !important;
+}
+
+summary {
+  user-select: none !important;
+} */
+</style>

@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 @plugin "daisyui" {
-  themes: silk --default, dark --prefersdark, silk, synthwave, cyberpunk;
+  themes: silk --default, dracula --prefersdark, silk, synthwave, cyberpunk;
 }
 
 

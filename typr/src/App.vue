@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import Footer from './components/Footer.vue'
 import Keyboard from './components/Keyboard.vue'
+import NavigationBar from './components/NavigationBar.vue'
 </script>
 
 <template>
   <div class="flex size-full flex-col items-center">
-    <nav class="flex h-16 w-full items-center justify-between bg-amber-100 p-3">
-      <div class="flex h-10 w-15 justify-center rounded-xl bg-amber-200 p-2">logo</div>
-      <div class="flex h-13 w-13 items-center justify-center rounded-xl bg-amber-200">menu</div>
-    </nav>
+    <NavigationBar />
     <div
       class="my-auto flex h-4/5 w-4/5 flex-col items-center justify-center gap-4 rounded-xl bg-amber-100"
     >
@@ -30,6 +28,8 @@ import Keyboard from './components/Keyboard.vue'
           </div>
         </div>
         <!-- text content -->
+        <button class="btn">Button</button>
+
         <div class="lin overflow-hidden text-4xl/12 font-medium text-clip">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Error rerum eum tenetur
           laboriosam aperiam modi nemo aspernatur molestiae iure, vel blanditiis culpa, laudantium

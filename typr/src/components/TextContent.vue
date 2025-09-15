@@ -5,33 +5,21 @@ const textContent = defineProps({
   content: String,
 })
 
-let id = 0
+let id = ref(0)
+let typed_id = ref(1) // id of the last typed character
 
-class ContentCharacter {
-  id: number
-  char: string
-  displayChar: string
-  done: boolean
-  correct: boolean
-
-  constructor(id: number, char: string, displayChar: string, done: boolean, correct: boolean) {
-    this.id = id++
-    this.char = char
-    this.displayChar = char
-    this.done = done
-    this.correct = correct
-  }
-}
-
-const characters = computed<ContentCharacter[]>(() => {
-  return textContent.content
-    ? textContent.content
-        .split('')
-        .map((char, idx) => new ContentCharacter(idx, char, char, false, false))
-    : []
-})
-
-// const characters = ref([{ id: id++, char: '|', done: false, correct: false }])
+const charMap = ref(
+  textContent.content?.split('').map((char, idx) => {
+    let textChar = {
+      id: id.value++,
+      char: char,
+      displayChar: char,
+      done: false,
+      correct: false,
+    }
+    return textChar
+  }) ?? [],
+)
 
 function highlightText() {
   const allSpans = document.querySelectorAll('span')
@@ -39,29 +27,72 @@ function highlightText() {
     span.classList.add('correct')
   })
 }
+
+function handleKeydown(event: KeyboardEvent) {
+  // TODO: handle other keys, only consider alphanumeric keys
+
+  const current_char = charMap.value.find((x) => x.id === typed_id.value)
+  if (current_char) {
+    typed_id.value++
+    current_char.done = true
+
+    console.log(current_char?.displayChar)
+
+    if (event.key === ' ') {
+      event.preventDefault() // Prevent scrolling when space is pressed
+      current_char.displayChar = ' '
+
+      if (current_char.char === ' ') current_char.correct = false
+    } else if (
+      // event.key in ['Shift', 'CapsLock', 'Tab', 'Control', 'Alt', 'Meta', 'Enter', 'Backspace']
+      event.ctrlKey ||
+      event.altKey ||
+      event.metaKey
+    ) {
+      // Ignore non-alphanumeric keys
+      return
+    } else if (event.code === 'Backspace') {
+      typed_id.value--
+    } else if (event.shiftKey || event.code == 'CapsLock') {
+      // skip
+    }
+
+    current_char.displayChar = event.key
+    if (event.key === current_char.char) {
+      current_char.correct = true
+    } else {
+      current_char.correct = false
+    }
+  }
+
+  // console.log(current_char?.displayChar)
+}
 </script>
 
 <template>
   <div
-    @click="highlightText"
-    class="cursor-pointer overflow-hidden px-6 text-4xl/12 font-medium text-clip text-base-content/60"
+    tabindex="0"
+    @keydown="handleKeydown"
+    class="cursor-text overflow-hidden px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60"
   >
-    <span>|</span>
-    <!-- <span v-for="(char, idx) in textContent.content?.split('')" :key="idx">
-      <TextChar :typed="false" :correct="false">
-        {{ char }}
-      </TextChar>
-    </span> -->
-    <span></span>
-    <span v-for="char in characters" :key="char.id">{{ char.char }}</span>
+    <span class="absolute animate-pulse text-5xl font-semibold text-primary" id="caret">l</span>
+    <span
+      :class="{
+        correct: char.correct,
+        incorrect: char.done && !char.correct,
+      }"
+      v-for="char in charMap"
+      :key="char.id"
+      >{{ char.displayChar }}</span
+    >
   </div>
 </template>
 
 <style scoped>
 .correct {
-  color: var(--color-purple-400);
+  color: var(--color-base-content);
 }
 .incorrect {
-  color: var(--error);
+  color: var(--color-error);
 }
 </style>

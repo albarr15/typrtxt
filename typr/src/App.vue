@@ -1,17 +1,25 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 import Footer from './components/Footer.vue'
 import Keyboard from './components/Keyboard.vue'
 import NavigationBar from './components/NavigationBar.vue'
+import TextContent from './components/TextContent.vue'
+
+const textContent = ref(
+  'And now here is my secret, a very simple secret: It is only with the heart that one can see rightly; what is essential is' +
+    ' invisible to the eye.',
+)
 </script>
 
 <template>
   <div class="flex size-full flex-col items-center">
     <NavigationBar />
     <div
-      class="my-auto flex h-fit max-h-4/5 min-h-200 w-4/5 max-w-7xl flex-col items-center justify-center gap-4"
+      class="my-auto flex h-fit max-h-4/5 min-h-150 w-2/3 max-w-7xl flex-col items-center justify-center gap-4"
     >
       <!-- main content -->
-      <div class="-mt-15 flex h-4/5 flex-col rounded-xl bg-base-200 px-6 shadow-md">
+      <div class="flex h-4/5 flex-col rounded-xl bg-base-200 px-6 shadow-md">
         <!-- book info -->
         <div
           class="m-4 flex h-1/12 items-center justify-between rounded-xl p-2 text-xs text-base-content/70"
@@ -28,12 +36,7 @@ import NavigationBar from './components/NavigationBar.vue'
           </div>
         </div>
         <!-- text content -->
-
-        <div class="overflow-hidden px-6 text-4xl/12 font-medium text-clip text-base-content/60">
-          <span class="text-primary">And now here is my secret, a</span>
-          very simple secret: It is only with the heart that one can see rightly; what is essential
-          is invisible to the eye.
-        </div>
+        <TextContent :content="textContent" />
       </div>
       <!-- keyboard ui -->
       <Keyboard />

@@ -24,17 +24,29 @@ const caret = ref<HTMLElement | null>(null)
 
 watch(typed_id, (newId) => {
   // Animating text cursor
-  // TODO: make caret position responsive to window resizing
+  const textContent = document.getElementById('text-content')
+  const container = document.getElementById('text-content')?.parentElement
   const currentCharSpan = document.getElementById('char-' + newId)
-  if (!currentCharSpan) return
-  var caretPosition = currentCharSpan.getBoundingClientRect()
+
+  if (!currentCharSpan || !textContent || !container) return
+
+  var containerPos = container.getBoundingClientRect()
+  var textContentPos = textContent.getBoundingClientRect()
+  var currentCharPos = currentCharSpan.getBoundingClientRect()
+
+  const containerCenter = containerPos.top + containerPos.height / 2
+
   if (caret.value) {
-    caret.value.style.top = `${caretPosition.top - 5}px`
+    if (currentCharPos.top > containerCenter) {
+      currentCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+
+    caret.value.style.top = `${currentCharSpan.offsetTop - 5}px`
     console.log('New ID: ' + newId, ' Current Char: ' + currentCharSpan.innerText)
 
     console.log('chacrater at last: ', charMap.value[newId])
 
-    caret.value.style.left = `${caretPosition.left - 10}px`
+    caret.value.style.left = `${currentCharSpan.offsetLeft - 10}px`
 
     console.log(currentCharSpan)
   }
@@ -48,6 +60,8 @@ window.addEventListener('keydown', (event) => {
   if (event.defaultPrevented) {
     return // Do nothing if the event was already processed
   }
+
+  event.preventDefault()
 
   // console.log('Key pressed: ' + event.key)
   // console.log('Typed id: ' + typed_id.value)
@@ -96,21 +110,23 @@ window.addEventListener('keydown', (event) => {
 <template>
   <div
     tabindex="0"
-    class="w-full cursor-text overflow-hidden px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
+    class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
   >
-    <span class="absolute animate-pulse text-5xl font-semibold text-primary" ref="caret">|</span>
-    <span
-      class="whitespace-pre-wrap"
-      :class="{
-        correct: char.correct,
-        incorrect: char.done && !char.correct,
-        'text-ghost': !char.done,
-      }"
-      :id="'char-' + char.id"
-      v-for="char in charMap"
-      :key="char.id"
-      >{{ char.displayChar }}</span
-    >
+    <div id="text-content" class="relative">
+      <span class="absolute animate-pulse text-5xl font-semibold text-primary" ref="caret">|</span>
+      <span
+        class="whitespace-pre-wrap"
+        :class="{
+          correct: char.correct,
+          incorrect: char.done && !char.correct,
+          'text-ghost': !char.done,
+        }"
+        :id="'char-' + char.id"
+        v-for="char in charMap"
+        :key="char.id"
+        >{{ char.displayChar }}</span
+      >
+    </div>
   </div>
 </template>
 

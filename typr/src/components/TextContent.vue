@@ -42,13 +42,13 @@ watch(typed_id, (newId) => {
     }
 
     caret.value.style.top = `${currentCharSpan.offsetTop - 5}px`
-    console.log('New ID: ' + newId, ' Current Char: ' + currentCharSpan.innerText)
+    // console.log('New ID: ' + newId, ' Current Char: ' + currentCharSpan.innerText)
 
-    console.log('chacrater at last: ', charMap.value[newId])
+    // console.log('chacrater at last: ', charMap.value[newId])
 
     caret.value.style.left = `${currentCharSpan.offsetLeft - 10}px`
 
-    console.log(currentCharSpan)
+    // console.log(currentCharSpan)
   }
 })
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { defineProps, ref } from 'vue'
+import { defineProps, ref, onMounted } from 'vue'
 
-const unit = ref(35)
+const unit = ref(50)
 
 const keyChar = defineProps({
   char: String,
@@ -9,15 +9,17 @@ const keyChar = defineProps({
     type: Number,
     default: 1,
   },
+  char2: String,
 })
 </script>
 
 <template>
   <div
-    class="flex items-center rounded-xs bg-base-100 p-1 text-[10px]"
+    class="flex flex-col items-center rounded-sm bg-base-100 p-1 pl-0.5 text-xs"
     :style="`width: ${keyChar.size * unit}px; height: ${unit - 10}px;`"
   >
-    {{ keyChar.char }}
+    <span class="font-thin">{{ keyChar.char2 }}</span>
+    <span>{{ keyChar.char }}</span>
   </div>
 </template>
 

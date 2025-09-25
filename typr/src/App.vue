@@ -12,9 +12,18 @@ const textContent = ref(
 )
 
 var current_running_time = ref(0)
+var displayTime = ref('00:00:00')
 
 function updateTimer(newTime: number) {
   current_running_time.value = newTime
+
+  let date = new Date(0)
+  date.setSeconds(newTime)
+  var timeString = date.toISOString().substring(11, 19)
+  if (timeString[0] == '0' || timeString[1] == '0') {
+    timeString = timeString.substring(3) // hide hours display
+  }
+  displayTime.value = timeString
 }
 </script>
 
@@ -30,15 +39,15 @@ function updateTimer(newTime: number) {
         <div
           class="m-4 flex h-1/12 items-center justify-between rounded-xl p-2 text-xs text-base-content/70"
         >
-          <div>Progress:</div>
+          <div>{{ displayTime }}</div>
           <div class="flex flex-col items-center justify-center">
             <div>The Little Prince</div>
             <div class="font-bold">CHAPTER 21</div>
           </div>
 
           <div class="flex items-center justify-center gap-5">
-            <div class="font-bold">{{ current_running_time }}</div>
-            <div class="font-bold">Timer</div>
+            <div class="font-bold">WPM</div>
+            <div class="font-bold">Accuracy</div>
           </div>
         </div>
         <!-- text content -->

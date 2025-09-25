@@ -125,7 +125,7 @@ function startTimer() {
   console.log('Timer started')
 
   if (running_time.value > 0) {
-    start = start - running_time.value * 1000 - 1000 + 5000 // continue from previous time (deducted 5s of inactivity)
+    start = start - running_time.value * 1000 // continue from previous time (deducted 5s of inactivity)
   }
 
   var intervalId = setInterval(() => {
@@ -133,7 +133,11 @@ function startTimer() {
     if (Date.now() - last_typed_time.value > 5000) {
       alert('Timer stopped')
       clearInterval(intervalId)
+
+      running_time.value -= 5 // deduct 5s of inactivity + end of current second
       timer_running.value = false
+
+      emit('current_running_time', running_time.value)
       return
     }
 

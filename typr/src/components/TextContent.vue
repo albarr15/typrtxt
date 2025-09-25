@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { ref, defineProps, watch, onMounted } from 'vue'
+import { ref, defineEmits, defineProps, watch, onMounted, reactive } from 'vue'
 
 const textContent = defineProps({
   content: String,
 })
 
 let typed_id = ref(0) // id of the last typed character
+let last_typed_time = ref(Date.now())
+let timer_running = ref(false)
+let running_time = ref(0) // in seconds
+
+let emit = defineEmits(['current_running_time'])
+emit('current_running_time', running_time.value)
 
 const charMap = ref(
   textContent.content?.split('').map((char, idx) => {
@@ -23,6 +29,13 @@ const charMap = ref(
 const caret = ref<HTMLElement | null>(null)
 
 watch(typed_id, (newId) => {
+  // start test timer
+  last_typed_time.value = Date.now()
+
+  if (!timer_running.value) {
+    startTimer()
+  }
+
   // Animating text cursor
   const textContent = document.getElementById('text-content')
   const container = document.getElementById('text-content')?.parentElement
@@ -105,6 +118,38 @@ window.addEventListener('keydown', (event) => {
     current_char.correct = false
   }
 })
+
+function startTimer() {
+  var start = Date.now()
+  timer_running.value = true
+  console.log('Timer started')
+
+  if (running_time.value > 0) {
+    start = start - running_time.value * 1000 - 1000 + 5000 // continue from previous time (deducted 5s of inactivity)
+  }
+
+  var intervalId = setInterval(() => {
+    // stop timer when no presses detected for 5 seconds
+    if (Date.now() - last_typed_time.value > 5000) {
+      alert('Timer stopped')
+      clearInterval(intervalId)
+      timer_running.value = false
+      return
+    }
+
+    if (textContent.content?.length === typed_id.value) {
+      alert('Test completed!')
+      clearInterval(intervalId)
+      timer_running.value = false
+      return
+    }
+
+    var delta = Date.now() - start
+    console.log('Timer: ' + Math.floor(delta / 1000) + 's')
+    running_time.value = Math.floor(delta / 1000)
+    emit('current_running_time', running_time.value)
+  }, 200)
+}
 </script>
 
 <template>

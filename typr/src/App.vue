@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onUpdated, ref } from 'vue'
 
 import Footer from './components/Footer.vue'
 import Keyboard from './components/Keyboard.vue'
@@ -10,6 +10,12 @@ const textContent = ref(
   'And now here is my secret, a very simple secret: It is only with the heart that one can see rightly; what is essential is' +
     ' invisible to the eye.',
 )
+
+var current_running_time = ref(0)
+
+function updateTimer(newTime: number) {
+  current_running_time.value = newTime
+}
 </script>
 
 <template>
@@ -31,12 +37,12 @@ const textContent = ref(
           </div>
 
           <div class="flex items-center justify-center gap-5">
-            <div class="font-bold">WPM</div>
+            <div class="font-bold">{{ current_running_time }}</div>
             <div class="font-bold">Timer</div>
           </div>
         </div>
         <!-- text content -->
-        <TextContent :content="textContent" />
+        <TextContent :content="textContent" @current_running_time="updateTimer" />
       </div>
       <!-- keyboard ui -->
       <Keyboard />

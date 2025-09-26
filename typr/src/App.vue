@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onUpdated, ref } from 'vue'
 
 import Footer from './components/Footer.vue'
 import Keyboard from './components/Keyboard.vue'
@@ -10,6 +10,33 @@ const textContent = ref(
   'And now here is my secret, a very simple secret: It is only with the heart that one can see rightly; what is essential is' +
     ' invisible to the eye.',
 )
+
+var current_running_time = ref(0)
+var displayTime = ref('00:00:00')
+
+function updateTimer(newTime: number) {
+  current_running_time.value = newTime
+
+  let date = new Date(0)
+  date.setSeconds(newTime)
+  var timeString = date.toISOString().substring(11, 19)
+  if (timeString[0] == '0' || timeString[1] == '0') {
+    timeString = timeString.substring(3) // hide hours display
+  }
+  displayTime.value = timeString
+}
+
+var stats = ref()
+var accuracy = ref(0)
+var wpm = ref(0)
+
+function updateStats(newStats: Object) {
+  stats.value = newStats
+  console.log(stats.value)
+
+  accuracy.value = stats.value.accuracy
+  wpm.value = stats.value.netWPM
+}
 </script>
 
 <template>
@@ -24,19 +51,23 @@ const textContent = ref(
         <div
           class="m-4 flex h-1/12 items-center justify-between rounded-xl p-2 text-xs text-base-content/70"
         >
-          <div>Progress:</div>
+          <div>{{ displayTime }}</div>
           <div class="flex flex-col items-center justify-center">
             <div>The Little Prince</div>
             <div class="font-bold">CHAPTER 21</div>
           </div>
 
           <div class="flex items-center justify-center gap-5">
-            <div class="font-bold">WPM</div>
-            <div class="font-bold">Timer</div>
+            <div class="font-bold">{{ wpm }}</div>
+            <div class="font-bold">{{ accuracy }}%</div>
           </div>
         </div>
         <!-- text content -->
-        <TextContent :content="textContent" />
+        <TextContent
+          :content="textContent"
+          @current_running_time="updateTimer"
+          @updateStats="updateStats"
+        />
       </div>
       <!-- keyboard ui -->
       <Keyboard />

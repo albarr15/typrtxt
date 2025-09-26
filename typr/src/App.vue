@@ -25,6 +25,18 @@ function updateTimer(newTime: number) {
   }
   displayTime.value = timeString
 }
+
+var stats = ref()
+var accuracy = ref(0)
+var wpm = ref(0)
+
+function updateStats(newStats: Object) {
+  stats.value = newStats
+  console.log(stats.value)
+
+  accuracy.value = stats.value.accuracy
+  wpm.value = stats.value.netWPM
+}
 </script>
 
 <template>
@@ -46,12 +58,16 @@ function updateTimer(newTime: number) {
           </div>
 
           <div class="flex items-center justify-center gap-5">
-            <div class="font-bold">WPM</div>
-            <div class="font-bold">Accuracy</div>
+            <div class="font-bold">{{ wpm }}</div>
+            <div class="font-bold">{{ accuracy }}%</div>
           </div>
         </div>
         <!-- text content -->
-        <TextContent :content="textContent" @current_running_time="updateTimer" />
+        <TextContent
+          :content="textContent"
+          @current_running_time="updateTimer"
+          @updateStats="updateStats"
+        />
       </div>
       <!-- keyboard ui -->
       <Keyboard />

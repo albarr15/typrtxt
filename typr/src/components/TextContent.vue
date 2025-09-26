@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, defineEmits, defineProps, watch, onMounted, reactive } from 'vue'
+import { ref, defineEmits, defineProps, watch, onMounted, reactive, computed } from 'vue'
 
 const textContent = defineProps({
   content: String,
@@ -10,7 +10,7 @@ let last_typed_time = ref(Date.now())
 let timer_running = ref(false)
 let running_time = ref(0) // in seconds
 
-let emit = defineEmits(['current_running_time'])
+let emit = defineEmits(['current_running_time', 'updateStats'])
 emit('current_running_time', running_time.value)
 
 const charMap = ref(
@@ -26,9 +26,33 @@ const charMap = ref(
   }) ?? [],
 )
 
+var stats = computed(() => {
+  const minutes = running_time.value / 60
+  const typedChars = charMap.value.filter((c) => c.done).length
+  const incorrectChars = charMap.value.filter((c) => c.done && !c.correct).length
+
+  const grossWPM = typed_id.value / 5
+  const netWPM = minutes > 0 ? (grossWPM - incorrectChars) / minutes : 0
+
+  const correctChars = charMap.value.filter((c) => c.done && c.correct).length
+  const accuracy = Math.round((correctChars / typedChars) * 100) || 0
+
+  return {
+    grossWPM: Math.round(grossWPM) || 0,
+    netWPM: Math.round(netWPM) || 0,
+    typedChars: typedChars,
+    correctChars: correctChars,
+    incorrectChars: incorrectChars,
+    accuracy: accuracy,
+    minutes: minutes,
+  }
+})
+
 const caret = ref<HTMLElement | null>(null)
 
 watch(typed_id, (newId) => {
+  emit('updateStats', stats.value)
+
   // start test timer
   last_typed_time.value = Date.now()
 
@@ -75,9 +99,9 @@ window.addEventListener('keydown', (event) => {
   }
 
   event.preventDefault()
+  // console.log('Typed id: ' + typed_id.value)
 
   // console.log('Key pressed: ' + event.key)
-  // console.log('Typed id: ' + typed_id.value)
 
   const current_char = charMap.value.find((x) => x.id === typed_id.value)
   if (!current_char) return
@@ -149,7 +173,7 @@ function startTimer() {
     }
 
     var delta = Date.now() - start
-    console.log('Timer: ' + Math.floor(delta / 1000) + 's')
+    // console.log('Timer: ' + Math.floor(delta / 1000) + 's')
     running_time.value = Math.floor(delta / 1000)
     emit('current_running_time', running_time.value)
   }, 200)

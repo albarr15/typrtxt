@@ -1,10 +1,45 @@
 <script setup lang="ts">
-import { onUpdated, ref } from 'vue'
+import { onMounted, ref } from 'vue'
+
+import ePub from 'epubjs'
 
 import Footer from './components/Footer.vue'
 import Keyboard from './components/Keyboard.vue'
 import NavigationBar from './components/NavigationBar.vue'
 import TextContent from './components/TextContent.vue'
+
+const extractedText = ref('')
+
+onMounted(async () => {
+  try {
+    const book = ePub('/books/frankenstein.epub')
+    await book.ready
+
+    console.log('Book loaded')
+
+    extractedText.value = ''
+
+    book.spine.each(async (section: any) => {
+      try {
+        const doc: Document = await section.load(book.load.bind(book))
+
+        const paragraphs = doc.querySelectorAll('p')
+        paragraphs.forEach((p) => {
+          extractedText.value += p.textContent?.trim() + '\n\n'
+        })
+        console.log(section.href)
+
+        section.unload()
+
+        console.log(extractedText.value)
+      } catch (err) {
+        console.error('Error loading section:', section.href, err)
+      }
+    })
+  } catch (err) {
+    console.error('Error loading book:', err)
+  }
+})
 
 const textContent = ref(
   'And now here is my secret, a very simple secret: It is only with the heart that one can see rightly; what is essential is' +
@@ -75,6 +110,7 @@ function updateStats(newStats: Object) {
 
     <Footer />
   </div>
+  <div id="area"></div>
 </template>
 
 <style scoped></style>

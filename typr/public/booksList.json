@@ -2,5 +2,13 @@
   {
     "name": "frankenstein.epub",
     "path": "/books/frankenstein.epub"
+  },
+  {
+    "name": "pg1513-images.epub",
+    "path": "/books/pg1513-images.epub"
+  },
+  {
+    "name": "pg2701.epub",
+    "path": "/books/pg2701.epub"
   }
 ]

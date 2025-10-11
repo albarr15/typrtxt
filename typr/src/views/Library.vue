@@ -1,36 +1,63 @@
 <script setup lang="ts">
 import BookCard from '../components/BookCard.vue'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import ePub from 'epubjs'
 
-interface Book {
-  name: string
+interface BookInfo {
+  identifier: string
   path: string
+  title: string
+  creator?: string
+  genre?: string
+  language: string
+  description?: string
+  publisher?: string
+  coverUrl?: string | null
+  date?: Date
+  subject?: string
 }
+
+var books = ref<BookInfo[]>([])
 
 onMounted(async () => {
   console.log('Fetching booklist ...')
   try {
     const response = await fetch('/booksList.json')
-    const booksFileList: Book[] = await response.json()
+    let bookPathList = await response.json()
 
     console.log('Processing books ...')
 
-    for (const b of booksFileList) {
+    for (const b of bookPathList) {
       try {
-        const book = ePub(b.path)
+        const foundBook = ePub(b.path)
+        await foundBook.ready
 
-        await book.ready
+        // console.log('Found ' + b.name)
 
-        console.log('Found ' + b.name)
+        foundBook.loaded.metadata
+          .then(async function (meta) {
+            const url = await foundBook.coverUrl()
 
-        book.loaded.metadata
-          .then(function (meta) {
+            books.value.push({
+              identifier: meta.identifier,
+              path: b.path,
+              title: meta.title,
+              creator: meta.creator,
+              description: meta.description,
+              publisher: meta.publisher,
+              language: meta.language,
+              coverUrl: url,
+              genre: meta.subject,
+            })
+
+            // console.log('Books array:', books.value)
+
             console.log('Book Title:', meta.title)
             console.log('Author:', meta.creator)
             console.log('Description:', meta.description)
             console.log('Publisher:', meta.publisher)
-            console.log('Language:', meta)
+            console.log('Language:', meta.language)
+            console.log('Genre:', meta.subject)
           })
           .catch(function (error) {
             console.error('Error loading metadata:', error)
@@ -64,7 +91,16 @@ onMounted(async () => {
     </label>
 
     <div class="grid grid-cols-1 gap-3">
-      <BookCard />
+      <BookCard
+        v-for="b in books"
+        :key="b.path"
+        :title="b.title"
+        :genre="b.genre"
+        :creator="b.creator"
+        :language="b.language"
+        :cover-url="b.coverUrl"
+        :description="b.description"
+      />
     </div>
   </div>
 </template>

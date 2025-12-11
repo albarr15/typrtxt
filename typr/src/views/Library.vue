@@ -47,7 +47,6 @@ onMounted(async () => {
               publisher: meta.publisher,
               language: meta.language,
               coverUrl: url,
-              genre: meta.subject,
             })
 
             // console.log('Books array:', books.value)
@@ -57,7 +56,6 @@ onMounted(async () => {
             console.log('Description:', meta.description)
             console.log('Publisher:', meta.publisher)
             console.log('Language:', meta.language)
-            console.log('Genre:', meta.subject)
           })
           .catch(function (error) {
             console.error('Error loading metadata:', error)

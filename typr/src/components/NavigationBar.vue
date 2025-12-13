@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import type { Component } from 'vue'
+import router from '../router'
 
 const isDarkMode = ref(false)
 const savedTheme = localStorage.getItem('theme')
@@ -26,21 +28,23 @@ function toggleTheme() {
 <template>
   <nav class="mb-10 navbar bg-base-300 px-2 shadow-md select-none">
     <div class="navbar-start">
-      <a class="btn text-xl btn-ghost">typr</a>
+      <router-link to="/" class="btn text-xl btn-ghost">typr</router-link>
     </div>
     <div class="navbar-center hidden lg:flex">
       <ul class="menu menu-horizontal gap-4 px-1">
-        <li><a>Home</a></li>
+        <li><router-link to="/">Home</router-link></li>
         <li>
           <details>
-            <summary>Library</summary>
+            <summary><router-link to="/lib">Library</router-link></summary>
             <ul class="rounded-md bg-base-300 p-2 shadow-md">
-              <li><a>Current Reads</a></li>
-              <li><a>Shelf</a></li>
+              <li><router-link to="/test">Typing Test</router-link></li>
+              <!-- temp link -->
+              <li><router-link to="/stats">Stats</router-link></li>
+              <!-- temp link -->
             </ul>
           </details>
         </li>
-        <li><a>Settings</a></li>
+        <li><router-link to="/settings">Settings</router-link></li>
       </ul>
     </div>
     <div class="navbar-end">
@@ -97,15 +101,17 @@ function toggleTheme() {
           tabindex="0"
           class="dropdown-content menu z-1 mt-3 w-52 menu-md rounded-md bg-base-300 p-2 shadow-md"
         >
-          <li><a>Home</a></li>
+          <li><router-link to="/">Home</router-link></li>
           <li>
-            <a>Library</a>
+            <router-link to="/lib">Library</router-link>
             <ul class="p-2">
-              <li><a>Current Reads</a></li>
-              <li><a>Shelf</a></li>
+              <li><router-link to="/test">Typing Test</router-link></li>
+              <!-- temp link -->
+              <li><router-link to="/stats">Stats</router-link></li>
+              <!-- temp link -->
             </ul>
           </li>
-          <li><a>Settings</a></li>
+          <li><router-link to="/settings">Settings</router-link></li>
         </ul>
       </div>
     </div>

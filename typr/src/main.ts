@@ -2,6 +2,7 @@ import { createApp, onMounted } from 'vue'
 import App from './App.vue'
 import './assets/css/style.css'
 import { themeChange } from 'theme-change'
+import router from './router'
 
 export default {
   setup() {
@@ -11,4 +12,4 @@ export default {
   },
 }
 
-createApp(App).mount('#app')
+createApp(App).use(router).mount('#app')

@@ -14,7 +14,20 @@ interface BookInfo {
   publisher?: string
   coverUrl?: string | null
   date?: Date
-  subject?: string
+  subjects?: string | string[] | undefined
+  wordCount?: string
+  readingEase?: string
+}
+
+interface ExtendedMetadata {
+  'se:word-count'?: string
+  'se:reading-ease.flesch'?: string
+  subjects?: string | string[] | undefined
+  [key: string]: string | string[] | undefined
+}
+
+interface BookPath {
+  path: string
 }
 
 var books = ref<BookInfo[]>([])
@@ -23,7 +36,7 @@ onMounted(async () => {
   console.log('Fetching booklist ...')
   try {
     const response = await fetch('/booksList.json')
-    let bookPathList = await response.json()
+    const bookPathList: BookPath[] = await response.json()
 
     console.log('Processing books ...')
 
@@ -36,14 +49,14 @@ onMounted(async () => {
         const metadata = packaging.metadata
 
         // for fetching standardebooks metadata hidden from ePub.js
-        let extendedMetadata = {}
+        let extendedMetadata: ExtendedMetadata = {}
 
         try {
-          let opfPath = packaging.packagePath
+          let opfPath = (packaging as any).packagePath
 
           // If not available, try to get it from the container
           if (!opfPath && foundBook.container) {
-            opfPath = foundBook.container.packagePath
+            opfPath = (foundBook.container as any).packagePath
           }
 
           console.log('Attempting to read OPF from:', opfPath)
@@ -51,8 +64,8 @@ onMounted(async () => {
           // Try to get the file from the archive
           let opfXml
 
-          if (!opfXml && foundBook.archive.zip) {
-            const zipFile = foundBook.archive.zip.file(opfPath)
+          if (!opfXml && (foundBook.archive as any).zip) {
+            const zipFile = (foundBook.archive as any).zip.file(opfPath)
             if (zipFile) {
               opfXml = await zipFile.async('text')
             }
@@ -75,11 +88,13 @@ onMounted(async () => {
               metaTags.forEach((meta) => {
                 const property = meta.getAttribute('property')
                 const value = meta.textContent.trim()
-                extendedMetadata[property] = value
+                if (property && value) {
+                  extendedMetadata[property] = value
+                }
               })
 
               // Extract dc:subject tags
-              const subjects = []
+              const subjects: string[] | undefined = []
               const subjectTags = metadataElement.querySelectorAll('subject')
               subjectTags.forEach((subject) => {
                 subjects.push(subject.textContent.trim())
@@ -108,9 +123,6 @@ onMounted(async () => {
           description: metadata.description,
           publisher: metadata.publisher,
           language: metadata.language,
-          rights: metadata.rights,
-          pubdate: metadata.pubdate,
-          modified_date: metadata.modified_date,
           coverUrl: url,
           // Add extended metadata
           wordCount: extendedMetadata['se:word-count'],

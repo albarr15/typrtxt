@@ -32,36 +32,95 @@ onMounted(async () => {
         const foundBook = ePub(b.path)
         await foundBook.ready
 
-        // console.log('Found ' + b.name)
+        const packaging = foundBook.packaging
+        const metadata = packaging.metadata
 
-        foundBook.loaded.metadata
-          .then(async function (meta) {
-            const url = await foundBook.coverUrl()
+        // for fetching standardebooks metadata hidden from ePub.js
+        let extendedMetadata = {}
 
-            books.value.push({
-              identifier: meta.identifier,
-              path: b.path,
-              title: meta.title,
-              creator: meta.creator,
-              description: meta.description,
-              publisher: meta.publisher,
-              language: meta.language,
-              coverUrl: url,
-            })
+        try {
+          let opfPath = packaging.packagePath
 
-            // console.log('Books array:', books.value)
+          // If not available, try to get it from the container
+          if (!opfPath && foundBook.container) {
+            opfPath = foundBook.container.packagePath
+          }
 
-            console.log('Book Title:', meta.title)
-            console.log('Author:', meta.creator)
-            console.log('Description:', meta.description)
-            console.log('Publisher:', meta.publisher)
-            console.log('Language:', meta.language)
-          })
-          .catch(function (error) {
-            console.error('Error loading metadata:', error)
-          })
-      } catch (err) {
-        console.error('Error loading book: ', b.name, err)
+          console.log('Attempting to read OPF from:', opfPath)
+
+          // Try to get the file from the archive
+          let opfXml
+
+          if (!opfXml && foundBook.archive.zip) {
+            const zipFile = foundBook.archive.zip.file(opfPath)
+            if (zipFile) {
+              opfXml = await zipFile.async('text')
+            }
+          }
+
+          if (opfXml) {
+            console.log('Successfully read OPF file!')
+
+            // Parse the XML
+            const parser = new DOMParser()
+            const opfDoc = parser.parseFromString(opfXml, 'application/xml')
+
+            // Get the metadata element
+            const metadataElement = opfDoc.querySelector('metadata')
+
+            if (metadataElement) {
+              // Extract all meta tags with property attributes
+              const metaTags = metadataElement.querySelectorAll('meta[property]')
+
+              metaTags.forEach((meta) => {
+                const property = meta.getAttribute('property')
+                const value = meta.textContent.trim()
+                extendedMetadata[property] = value
+              })
+
+              // Extract dc:subject tags
+              const subjects = []
+              const subjectTags = metadataElement.querySelectorAll('subject')
+              subjectTags.forEach((subject) => {
+                subjects.push(subject.textContent.trim())
+              })
+              if (subjects.length > 0) {
+                extendedMetadata.subjects = subjects
+              }
+
+              console.log('=== Extended Metadata Found ===')
+              console.log(extendedMetadata)
+            }
+          } else {
+            console.error('Could not read OPF file ...')
+          }
+        } catch (xmlError) {
+          console.error('Error parsing OPF XML:', xmlError)
+        }
+
+        const url = await foundBook.coverUrl()
+
+        books.value.push({
+          identifier: metadata.identifier,
+          path: b.path,
+          title: metadata.title,
+          creator: metadata.creator,
+          description: metadata.description,
+          publisher: metadata.publisher,
+          language: metadata.language,
+          rights: metadata.rights,
+          pubdate: metadata.pubdate,
+          modified_date: metadata.modified_date,
+          coverUrl: url,
+          // Add extended metadata
+          wordCount: extendedMetadata['se:word-count'],
+          readingEase: extendedMetadata['se:reading-ease.flesch'],
+          subjects: extendedMetadata.subjects,
+        })
+
+        console.log('Book added with extended metadata')
+      } catch (error) {
+        console.error('Error loading book:', b.path, error)
       }
     }
   } catch (err) {

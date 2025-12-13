@@ -8,20 +8,21 @@ interface BookInfo {
   path: string
   title: string
   creator?: string
-  genre?: string
   language: string
   description?: string
   publisher?: string
   coverUrl?: string | null
   date?: Date
+  subject?: string | undefined
   subjects?: string | string[] | undefined
-  wordCount?: string
-  readingEase?: string
+  wordCount?: string | undefined
+  readingEase?: string | undefined
 }
 
 interface ExtendedMetadata {
-  'se:word-count'?: string
-  'se:reading-ease.flesch'?: string
+  'se:word-count'?: string | undefined
+  'se:reading-ease.flesch'?: string | undefined
+  'se:subject'?: string | undefined
   subjects?: string | string[] | undefined
   [key: string]: string | string[] | undefined
 }
@@ -33,12 +34,12 @@ interface BookPath {
 var books = ref<BookInfo[]>([])
 
 onMounted(async () => {
-  console.log('Fetching booklist ...')
+  // console.log('Fetching booklist ...')
   try {
     const response = await fetch('/booksList.json')
     const bookPathList: BookPath[] = await response.json()
 
-    console.log('Processing books ...')
+    // console.log('Processing books ...')
 
     for (const b of bookPathList) {
       try {
@@ -59,7 +60,7 @@ onMounted(async () => {
             opfPath = (foundBook.container as any).packagePath
           }
 
-          console.log('Attempting to read OPF from:', opfPath)
+          // console.log('Attempting to read OPF from:', opfPath)
 
           // Try to get the file from the archive
           let opfXml
@@ -128,6 +129,7 @@ onMounted(async () => {
           wordCount: extendedMetadata['se:word-count'],
           readingEase: extendedMetadata['se:reading-ease.flesch'],
           subjects: extendedMetadata.subjects,
+          subject: extendedMetadata['se:subject'],
         })
 
         console.log('Book added with extended metadata')
@@ -142,7 +144,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-full w-full flex-col justify-start gap-4 bg-gray-500 px-5">
+  <div class="flex max-w-[1280px] flex-col justify-start gap-8 px-5">
     <label class="input w-full">
       <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <g
@@ -159,16 +161,19 @@ onMounted(async () => {
       <input type="search" required placeholder="Search" />
     </label>
 
-    <div class="grid grid-cols-1 gap-3">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard
         v-for="b in books"
         :key="b.path"
         :title="b.title"
-        :genre="b.genre"
+        :subjects="b.subjects"
+        :subject="b.subject"
         :creator="b.creator"
         :language="b.language"
         :cover-url="b.coverUrl"
         :description="b.description"
+        :word-count="b.wordCount"
+        :reading-ease="b.readingEase"
       />
     </div>
   </div>

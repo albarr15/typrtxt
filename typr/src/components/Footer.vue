@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 
 <template>
   <footer
-    class="footer footer-horizontal items-center justify-between bg-neutral p-4 text-neutral-content"
+    class="mt-4 footer footer-horizontal items-center justify-between bg-neutral p-4 text-neutral-content"
   >
     <aside class="grid-flow-col items-center">
       <p>Made with 🩶 by albarr15</p>

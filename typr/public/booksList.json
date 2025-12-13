@@ -1,14 +1,474 @@
 [
   {
-    "name": "frankenstein.epub",
-    "path": "/books/frankenstein.epub"
+    "name": "a-a-milne_the-house-at-pooh-corner.epub",
+    "path": "/books/a-a-milne_the-house-at-pooh-corner.epub"
   },
   {
-    "name": "pg1513-images.epub",
-    "path": "/books/pg1513-images.epub"
+    "name": "a-a-milne_winnie-the-pooh.epub",
+    "path": "/books/a-a-milne_winnie-the-pooh.epub"
   },
   {
-    "name": "pg2701.epub",
-    "path": "/books/pg2701.epub"
+    "name": "ada-elizabeth-chesterton_in-darkest-london.epub",
+    "path": "/books/ada-elizabeth-chesterton_in-darkest-london.epub"
+  },
+  {
+    "name": "adam-smith_the-wealth-of-nations.epub",
+    "path": "/books/adam-smith_the-wealth-of-nations.epub"
+  },
+  {
+    "name": "agatha-christie_the-murder-of-roger-ackroyd.epub",
+    "path": "/books/agatha-christie_the-murder-of-roger-ackroyd.epub"
+  },
+  {
+    "name": "agatha-christie_the-mystery-of-the-blue-train.epub",
+    "path": "/books/agatha-christie_the-mystery-of-the-blue-train.epub"
+  },
+  {
+    "name": "agatha-christie_the-seven-dials-mystery.epub",
+    "path": "/books/agatha-christie_the-seven-dials-mystery.epub"
+  },
+  {
+    "name": "alexandre-dumas_the-count-of-monte-cristo_chapman-and-hall.epub",
+    "path": "/books/alexandre-dumas_the-count-of-monte-cristo_chapman-and-hall.epub"
+  },
+  {
+    "name": "alexandre-dumas_the-three-musketeers_william-robson.epub",
+    "path": "/books/alexandre-dumas_the-three-musketeers_william-robson.epub"
+  },
+  {
+    "name": "algernon-blackwood_john-silence-stories.epub",
+    "path": "/books/algernon-blackwood_john-silence-stories.epub"
+  },
+  {
+    "name": "anton-chekhov_the-seagull_constance-garnett.epub",
+    "path": "/books/anton-chekhov_the-seagull_constance-garnett.epub"
+  },
+  {
+    "name": "aristotle_nicomachean-ethics_f-h-peters.epub",
+    "path": "/books/aristotle_nicomachean-ethics_f-h-peters.epub"
+  },
+  {
+    "name": "arthur-conan-doyle_a-study-in-scarlet.epub",
+    "path": "/books/arthur-conan-doyle_a-study-in-scarlet.epub"
+  },
+  {
+    "name": "arthur-conan-doyle_the-adventures-of-sherlock-holmes.epub",
+    "path": "/books/arthur-conan-doyle_the-adventures-of-sherlock-holmes.epub"
+  },
+  {
+    "name": "arthur-conan-doyle_the-hound-of-the-baskervilles.epub",
+    "path": "/books/arthur-conan-doyle_the-hound-of-the-baskervilles.epub"
+  },
+  {
+    "name": "arthur-conan-doyle_the-sign-of-the-four.epub",
+    "path": "/books/arthur-conan-doyle_the-sign-of-the-four.epub"
+  },
+  {
+    "name": "arthur-conan-doyle_the-white-company.epub",
+    "path": "/books/arthur-conan-doyle_the-white-company.epub"
+  },
+  {
+    "name": "bram-stoker_dracula.epub",
+    "path": "/books/bram-stoker_dracula.epub"
+  },
+  {
+    "name": "carolyn-wells_the-clue.epub",
+    "path": "/books/carolyn-wells_the-clue.epub"
+  },
+  {
+    "name": "charles-dickens_a-christmas-carol.epub",
+    "path": "/books/charles-dickens_a-christmas-carol.epub"
+  },
+  {
+    "name": "charles-dickens_a-tale-of-two-cities.epub",
+    "path": "/books/charles-dickens_a-tale-of-two-cities.epub"
+  },
+  {
+    "name": "charles-dickens_david-copperfield.epub",
+    "path": "/books/charles-dickens_david-copperfield.epub"
+  },
+  {
+    "name": "charles-dickens_great-expectations.epub",
+    "path": "/books/charles-dickens_great-expectations.epub"
+  },
+  {
+    "name": "charles-dickens_oliver-twist.epub",
+    "path": "/books/charles-dickens_oliver-twist.epub"
+  },
+  {
+    "name": "charles-dickens_our-mutual-friend.epub",
+    "path": "/books/charles-dickens_our-mutual-friend.epub"
+  },
+  {
+    "name": "charlotte-bronte_jane-eyre.epub",
+    "path": "/books/charlotte-bronte_jane-eyre.epub"
+  },
+  {
+    "name": "dante-alighieri_the-divine-comedy_henry-wadsworth-longfellow.epub",
+    "path": "/books/dante-alighieri_the-divine-comedy_henry-wadsworth-longfellow.epub"
+  },
+  {
+    "name": "edgar-allan-poe_short-fiction.epub",
+    "path": "/books/edgar-allan-poe_short-fiction.epub"
+  },
+  {
+    "name": "edward-gibbon_the-history-of-the-decline-and-fall-of-the-roman-empire.epub",
+    "path": "/books/edward-gibbon_the-history-of-the-decline-and-fall-of-the-roman-empire.epub"
+  },
+  {
+    "name": "emily-bronte_wuthering-heights.epub",
+    "path": "/books/emily-bronte_wuthering-heights.epub"
+  },
+  {
+    "name": "epictetus_discourses_george-long.epub",
+    "path": "/books/epictetus_discourses_george-long.epub"
+  },
+  {
+    "name": "erich-maria-remarque_all-quiet-on-the-western-front_a-w-wheen.epub",
+    "path": "/books/erich-maria-remarque_all-quiet-on-the-western-front_a-w-wheen.epub"
+  },
+  {
+    "name": "ernest-hemingway_a-farewell-to-arms.epub",
+    "path": "/books/ernest-hemingway_a-farewell-to-arms.epub"
+  },
+  {
+    "name": "ernest-hemingway_the-sun-also-rises.epub",
+    "path": "/books/ernest-hemingway_the-sun-also-rises.epub"
+  },
+  {
+    "name": "f-scott-fitzgerald_the-great-gatsby.epub",
+    "path": "/books/f-scott-fitzgerald_the-great-gatsby.epub"
+  },
+  {
+    "name": "frances-hodgson-burnett_the-secret-garden.epub",
+    "path": "/books/frances-hodgson-burnett_the-secret-garden.epub"
+  },
+  {
+    "name": "friedrich-nietzsche_beyond-good-and-evil_helen-zimmern.epub",
+    "path": "/books/friedrich-nietzsche_beyond-good-and-evil_helen-zimmern.epub"
+  },
+  {
+    "name": "friedrich-nietzsche_thus-spake-zarathustra_thomas-common.epub",
+    "path": "/books/friedrich-nietzsche_thus-spake-zarathustra_thomas-common.epub"
+  },
+  {
+    "name": "fyodor-dostoevsky_crime-and-punishment_constance-garnett.epub",
+    "path": "/books/fyodor-dostoevsky_crime-and-punishment_constance-garnett.epub"
+  },
+  {
+    "name": "fyodor-dostoevsky_demons_constance-garnett.epub",
+    "path": "/books/fyodor-dostoevsky_demons_constance-garnett.epub"
+  },
+  {
+    "name": "fyodor-dostoevsky_notes-from-underground_constance-garnett.epub",
+    "path": "/books/fyodor-dostoevsky_notes-from-underground_constance-garnett.epub"
+  },
+  {
+    "name": "fyodor-dostoevsky_the-brothers-karamazov_constance-garnett.epub",
+    "path": "/books/fyodor-dostoevsky_the-brothers-karamazov_constance-garnett.epub"
+  },
+  {
+    "name": "fyodor-dostoevsky_the-house-of-the-dead_constance-garnett.epub",
+    "path": "/books/fyodor-dostoevsky_the-house-of-the-dead_constance-garnett.epub"
+  },
+  {
+    "name": "fyodor-dostoevsky_the-idiot_eva-m-martin.epub",
+    "path": "/books/fyodor-dostoevsky_the-idiot_eva-m-martin.epub"
+  },
+  {
+    "name": "g-k-chesterton_manalive.epub",
+    "path": "/books/g-k-chesterton_manalive.epub"
+  },
+  {
+    "name": "geoffrey-chaucer_the-canterbury-tales.epub",
+    "path": "/books/geoffrey-chaucer_the-canterbury-tales.epub"
+  },
+  {
+    "name": "george-dilnot_the-lazy-detective.epub",
+    "path": "/books/george-dilnot_the-lazy-detective.epub"
+  },
+  {
+    "name": "george-eliot_middlemarch.epub",
+    "path": "/books/george-eliot_middlemarch.epub"
+  },
+  {
+    "name": "georgette-heyer_the-black-moth.epub",
+    "path": "/books/georgette-heyer_the-black-moth.epub"
+  },
+  {
+    "name": "h-g-wells_in-the-days-of-the-comet.epub",
+    "path": "/books/h-g-wells_in-the-days-of-the-comet.epub"
+  },
+  {
+    "name": "h-g-wells_the-invisible-man.epub",
+    "path": "/books/h-g-wells_the-invisible-man.epub"
+  },
+  {
+    "name": "h-g-wells_the-time-machine.epub",
+    "path": "/books/h-g-wells_the-time-machine.epub"
+  },
+  {
+    "name": "h-g-wells_the-war-of-the-worlds.epub",
+    "path": "/books/h-g-wells_the-war-of-the-worlds.epub"
+  },
+  {
+    "name": "h-p-lovecraft_at-the-mountains-of-madness.epub",
+    "path": "/books/h-p-lovecraft_at-the-mountains-of-madness.epub"
+  },
+  {
+    "name": "h-p-lovecraft_short-fiction.epub",
+    "path": "/books/h-p-lovecraft_short-fiction.epub"
+  },
+  {
+    "name": "henry-david-thoreau_walden.epub",
+    "path": "/books/henry-david-thoreau_walden.epub"
+  },
+  {
+    "name": "henry-james_the-turn-of-the-screw.epub",
+    "path": "/books/henry-james_the-turn-of-the-screw.epub"
+  },
+  {
+    "name": "herman-melville_moby-dick.epub",
+    "path": "/books/herman-melville_moby-dick.epub"
+  },
+  {
+    "name": "hermann-hesse_siddhartha_various-translators.epub",
+    "path": "/books/hermann-hesse_siddhartha_various-translators.epub"
+  },
+  {
+    "name": "homer_the-iliad_william-cullen-bryant.epub",
+    "path": "/books/homer_the-iliad_william-cullen-bryant.epub"
+  },
+  {
+    "name": "homer_the-odyssey_william-cullen-bryant.epub",
+    "path": "/books/homer_the-odyssey_william-cullen-bryant.epub"
+  },
+  {
+    "name": "isaac-asimov_short-science-fiction.epub",
+    "path": "/books/isaac-asimov_short-science-fiction.epub"
+  },
+  {
+    "name": "jack-london_the-call-of-the-wild.epub",
+    "path": "/books/jack-london_the-call-of-the-wild.epub"
+  },
+  {
+    "name": "james-joyce_ulysses.epub",
+    "path": "/books/james-joyce_ulysses.epub"
+  },
+  {
+    "name": "jane-austen_emma.epub",
+    "path": "/books/jane-austen_emma.epub"
+  },
+  {
+    "name": "jane-austen_persuasion.epub",
+    "path": "/books/jane-austen_persuasion.epub"
+  },
+  {
+    "name": "jane-austen_pride-and-prejudice.epub",
+    "path": "/books/jane-austen_pride-and-prejudice.epub"
+  },
+  {
+    "name": "jane-austen_sense-and-sensibility.epub",
+    "path": "/books/jane-austen_sense-and-sensibility.epub"
+  },
+  {
+    "name": "jessie-redmon-fauset_there-is-confusion.epub",
+    "path": "/books/jessie-redmon-fauset_there-is-confusion.epub"
+  },
+  {
+    "name": "john-cowper-powys_wolf-solent.epub",
+    "path": "/books/john-cowper-powys_wolf-solent.epub"
+  },
+  {
+    "name": "john-milton_paradise-lost.epub",
+    "path": "/books/john-milton_paradise-lost.epub"
+  },
+  {
+    "name": "john-rhode_the-murders-in-praed-street.epub",
+    "path": "/books/john-rhode_the-murders-in-praed-street.epub"
+  },
+  {
+    "name": "jonathan-swift_gullivers-travels.epub",
+    "path": "/books/jonathan-swift_gullivers-travels.epub"
+  },
+  {
+    "name": "joseph-conrad_heart-of-darkness.epub",
+    "path": "/books/joseph-conrad_heart-of-darkness.epub"
+  },
+  {
+    "name": "karl-marx-friedrich-engels_the-communist-manifesto_samuel-moore.epub",
+    "path": "/books/karl-marx-friedrich-engels_the-communist-manifesto_samuel-moore.epub"
+  },
+  {
+    "name": "l-frank-baum_the-wonderful-wizard-of-oz.epub",
+    "path": "/books/l-frank-baum_the-wonderful-wizard-of-oz.epub"
+  },
+  {
+    "name": "l-m-montgomery_anne-of-green-gables.epub",
+    "path": "/books/l-m-montgomery_anne-of-green-gables.epub"
+  },
+  {
+    "name": "laozi_tao-te-ching_james-legge.epub",
+    "path": "/books/laozi_tao-te-ching_james-legge.epub"
+  },
+  {
+    "name": "leo-tolstoy_anna-karenina_constance-garnett.epub",
+    "path": "/books/leo-tolstoy_anna-karenina_constance-garnett.epub"
+  },
+  {
+    "name": "leo-tolstoy_war-and-peace_louise-maude-aylmer-maude.epub",
+    "path": "/books/leo-tolstoy_war-and-peace_louise-maude-aylmer-maude.epub"
+  },
+  {
+    "name": "lewis-carroll_alices-adventures-in-wonderland_john-tenniel.epub",
+    "path": "/books/lewis-carroll_alices-adventures-in-wonderland_john-tenniel.epub"
+  },
+  {
+    "name": "lewis-carroll_through-the-looking-glass_john-tenniel.epub",
+    "path": "/books/lewis-carroll_through-the-looking-glass_john-tenniel.epub"
+  },
+  {
+    "name": "louisa-may-alcott_little-women.epub",
+    "path": "/books/louisa-may-alcott_little-women.epub"
+  },
+  {
+    "name": "marcel-proust_in-search-of-lost-time_c-k-scott-moncrieff.epub",
+    "path": "/books/marcel-proust_in-search-of-lost-time_c-k-scott-moncrieff.epub"
+  },
+  {
+    "name": "marcus-aurelius_meditations_george-long.epub",
+    "path": "/books/marcus-aurelius_meditations_george-long.epub"
+  },
+  {
+    "name": "mark-twain_the-adventures-of-huckleberry-finn.epub",
+    "path": "/books/mark-twain_the-adventures-of-huckleberry-finn.epub"
+  },
+  {
+    "name": "mark-twain_the-adventures-of-tom-sawyer.epub",
+    "path": "/books/mark-twain_the-adventures-of-tom-sawyer.epub"
+  },
+  {
+    "name": "marmaduke-pickthall_veiled-women.epub",
+    "path": "/books/marmaduke-pickthall_veiled-women.epub"
+  },
+  {
+    "name": "mary-shelley_frankenstein.epub",
+    "path": "/books/mary-shelley_frankenstein.epub"
+  },
+  {
+    "name": "maurice-leblanc_the-extraordinary-adventures-of-arsene-lupin-gentleman-burglar_george-morehead.epub",
+    "path": "/books/maurice-leblanc_the-extraordinary-adventures-of-arsene-lupin-gentleman-burglar_george-morehead.epub"
+  },
+  {
+    "name": "miguel-de-cervantes-saavedra_don-quixote_john-ormsby.epub",
+    "path": "/books/miguel-de-cervantes-saavedra_don-quixote_john-ormsby.epub"
+  },
+  {
+    "name": "niccolo-machiavelli_the-prince_w-k-marriott.epub",
+    "path": "/books/niccolo-machiavelli_the-prince_w-k-marriott.epub"
+  },
+  {
+    "name": "oscar-wilde_the-picture-of-dorian-gray.epub",
+    "path": "/books/oscar-wilde_the-picture-of-dorian-gray.epub"
+  },
+  {
+    "name": "plato_dialogues_benjamin-jowett.epub",
+    "path": "/books/plato_dialogues_benjamin-jowett.epub"
+  },
+  {
+    "name": "r-austin-freeman_the-mystery-of-31-new-inn.epub",
+    "path": "/books/r-austin-freeman_the-mystery-of-31-new-inn.epub"
+  },
+  {
+    "name": "r-austin-freeman_the-red-thumbmark.epub",
+    "path": "/books/r-austin-freeman_the-red-thumbmark.epub"
+  },
+  {
+    "name": "richard-hughes_a-high-wind-in-jamaica.epub",
+    "path": "/books/richard-hughes_a-high-wind-in-jamaica.epub"
+  },
+  {
+    "name": "ring-lardner_jack-keefe-stories.epub",
+    "path": "/books/ring-lardner_jack-keefe-stories.epub"
+  },
+  {
+    "name": "ring-lardner_my-four-weeks-in-france.epub",
+    "path": "/books/ring-lardner_my-four-weeks-in-france.epub"
+  },
+  {
+    "name": "ring-lardner_poetry.epub",
+    "path": "/books/ring-lardner_poetry.epub"
+  },
+  {
+    "name": "robert-louis-stevenson_the-strange-case-of-dr-jekyll-and-mr-hyde.epub",
+    "path": "/books/robert-louis-stevenson_the-strange-case-of-dr-jekyll-and-mr-hyde.epub"
+  },
+  {
+    "name": "robert-louis-stevenson_treasure-island.epub",
+    "path": "/books/robert-louis-stevenson_treasure-island.epub"
+  },
+  {
+    "name": "robert-w-chambers_the-king-in-yellow.epub",
+    "path": "/books/robert-w-chambers_the-king-in-yellow.epub"
+  },
+  {
+    "name": "saki_short-fiction.epub",
+    "path": "/books/saki_short-fiction.epub"
+  },
+  {
+    "name": "stephen-vincent-benet_john-browns-body.epub",
+    "path": "/books/stephen-vincent-benet_john-browns-body.epub"
+  },
+  {
+    "name": "sun-tzu_the-art-of-war_lionel-giles.epub",
+    "path": "/books/sun-tzu_the-art-of-war_lionel-giles.epub"
+  },
+  {
+    "name": "t-e-lawrence_seven-pillars-of-wisdom.epub",
+    "path": "/books/t-e-lawrence_seven-pillars-of-wisdom.epub"
+  },
+  {
+    "name": "thomas-mann_the-magic-mountain_h-t-lowe-porter.epub",
+    "path": "/books/thomas-mann_the-magic-mountain_h-t-lowe-porter.epub"
+  },
+  {
+    "name": "victor-hugo_les-miserables_isabel-f-hapgood.epub",
+    "path": "/books/victor-hugo_les-miserables_isabel-f-hapgood.epub"
+  },
+  {
+    "name": "virginia-woolf_mrs-dalloway.epub",
+    "path": "/books/virginia-woolf_mrs-dalloway.epub"
+  },
+  {
+    "name": "virginia-woolf_orlando.epub",
+    "path": "/books/virginia-woolf_orlando.epub"
+  },
+  {
+    "name": "virginia-woolf_to-the-lighthouse.epub",
+    "path": "/books/virginia-woolf_to-the-lighthouse.epub"
+  },
+  {
+    "name": "wallace-thurman_the-blacker-the-berry.epub",
+    "path": "/books/wallace-thurman_the-blacker-the-berry.epub"
+  },
+  {
+    "name": "walter-bagehot_the-english-constitution.epub",
+    "path": "/books/walter-bagehot_the-english-constitution.epub"
+  },
+  {
+    "name": "william-faulkner_the-sound-and-the-fury.epub",
+    "path": "/books/william-faulkner_the-sound-and-the-fury.epub"
+  },
+  {
+    "name": "william-shakespeare_hamlet.epub",
+    "path": "/books/william-shakespeare_hamlet.epub"
+  },
+  {
+    "name": "william-shakespeare_macbeth.epub",
+    "path": "/books/william-shakespeare_macbeth.epub"
+  },
+  {
+    "name": "wladyslaw-reymont_the-peasants_michael-henry-dziewicki.epub",
+    "path": "/books/wladyslaw-reymont_the-peasants_michael-henry-dziewicki.epub"
   }
 ]

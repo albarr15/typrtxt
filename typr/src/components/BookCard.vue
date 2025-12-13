@@ -22,13 +22,13 @@ const book = defineProps<{
         class="h-full w-full object-cover"
       />
     </figure>
-    <div class="card-body flex w-2/3 flex-col">
+    <div class="card-body flex w-2/3 flex-col overflow-hidden">
       <h2 class="card-title">{{ book.title }}</h2>
       <span class="text-neutral-content">{{ book.creator }}</span>
 
       <p>{{ book.genre }}</p>
 
-      <p>{{ book.description }}</p>
+      <p class="text-ellipsis">{{ book.description }}</p>
 
       <div class="card-actions justify-end">
         <button class="btn btn-accent">Read</button>

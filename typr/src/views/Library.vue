@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BookCard from '../components/BookCard.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import ePub from 'epubjs'
 
 interface BookInfo {
@@ -141,29 +141,40 @@ onMounted(async () => {
     console.error('Error processing books: ', err)
   }
 })
+
+const searchQuery = ref('')
+
+const searchedBooks = computed(() => {
+  return books.value.filter((book) => {
+    return book.title.toLowerCase().indexOf(searchQuery.value.toLowerCase()) != -1
+  })
+})
 </script>
 
 <template>
-  <div class="flex max-w-[1280px] flex-col justify-start gap-8 px-5">
-    <label class="input w-full">
-      <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <g
-          stroke-linejoin="round"
-          stroke-linecap="round"
-          stroke-width="2.5"
-          fill="none"
-          stroke="currentColor"
-        >
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.3-4.3"></path>
-        </g>
-      </svg>
-      <input type="search" required placeholder="Search" />
-    </label>
+  <div class="flex w-[80dvw] flex-col justify-start gap-8 px-5">
+    <div class="flex justify-between gap-4">
+      <label class="input flex-1">
+        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <g
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            stroke-width="2.5"
+            fill="none"
+            stroke="currentColor"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </g>
+        </svg>
+        <input type="search" required placeholder="Search..." v-model="searchQuery" />
+      </label>
+      <button class="btn shrink-0">Filter</button>
+    </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div v-if="searchedBooks.length > 0" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard
-        v-for="b in books"
+        v-for="b in searchedBooks"
         :key="b.path"
         :title="b.title"
         :subjects="b.subjects"
@@ -176,6 +187,7 @@ onMounted(async () => {
         :reading-ease="b.readingEase"
       />
     </div>
+    <h1 v-else class="text-center">No books found.</h1>
   </div>
 </template>
 

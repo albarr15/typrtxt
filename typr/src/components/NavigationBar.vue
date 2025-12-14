@@ -26,7 +26,7 @@ function toggleTheme() {
 </script>
 
 <template>
-  <nav class="sticky top-0 z-50 mb-10 navbar bg-base-300 px-2 shadow-md select-none">
+  <nav class="sticky top-0 z-50 mb-10 navbar bg-base-300 px-2 shadow-lg select-none">
     <div class="navbar-start">
       <router-link to="/" class="btn text-xl btn-ghost">typr</router-link>
     </div>

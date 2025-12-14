@@ -59,7 +59,7 @@ const lengthLabel = (wordCount: string | null) => {
 
       <p class="line-clamp-2">{{ book.description }}</p>
 
-      <div class="flex justify-between" id="book-tags">
+      <div class="flex justify-start gap-2" id="book-tags">
         <div v-if="book.wordCount" class="badge badge-ghost">
           {{ lengthLabel(book.wordCount) }}
         </div>

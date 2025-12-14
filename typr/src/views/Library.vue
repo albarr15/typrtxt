@@ -175,7 +175,8 @@ const searchedBooks = computed(() => {
     <div v-if="searchedBooks.length > 0" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard
         v-for="b in searchedBooks"
-        :key="b.path"
+        :key="b.identifier"
+        :identifier="b.identifier"
         :title="b.title"
         :subjects="b.subjects"
         :subject="b.subject"

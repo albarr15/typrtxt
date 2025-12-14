@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 
 const book = defineProps<{
+  identifier: string
   title: string
   creator?: string
   language: string
@@ -68,7 +69,7 @@ const lengthLabel = (wordCount: string | null) => {
         </div>
       </div>
       <div class="card-actions justify-end">
-        <button class="btn btn-primary">Read</button>
+        <router-link to="/book"><button class="btn btn-primary">Read</button></router-link>
       </div>
     </div>
   </div>

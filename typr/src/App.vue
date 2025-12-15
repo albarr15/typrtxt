@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+
 import NavigationBar from './components/NavigationBar.vue'
 import Footer from './components/Footer.vue'
 </script>

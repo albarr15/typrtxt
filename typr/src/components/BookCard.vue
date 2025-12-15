@@ -1,19 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-
+import { computed, onMounted, ref } from 'vue'
 const book = defineProps<{
   identifier: string
+  path: string
   title: string
   creator?: string
   language: string
   description?: string
   publisher?: string
-  coverUrl?: string | null
-  date?: Date
+  cover_url?: string
+  subject?: string | undefined
   subjects?: string | string[] | undefined
-  subject: string | undefined
-  wordCount?: string
-  readingEase?: string
+  word_count?: string | undefined
+  reading_ease?: string | undefined
 }>()
 
 const readingEaseLabel = (score: string | null) => {
@@ -37,6 +36,10 @@ const lengthLabel = (wordCount: string | null) => {
   if (wordCountNum <= 120000) return 'Medium (< 120,000 words)'
   return 'Long (> 120,000 words)'
 }
+
+// console.log(book.cover_url)
+
+const fetchedBookCover = ref<string>('')
 </script>
 
 <template>
@@ -44,7 +47,7 @@ const lengthLabel = (wordCount: string | null) => {
     <figure class="w-40 shrink-0">
       <img
         :src="
-          book.coverUrl ??
+          book.cover_url ??
           'https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp' // TODO: replace fallback img
         "
         alt="Movie"
@@ -61,11 +64,11 @@ const lengthLabel = (wordCount: string | null) => {
       <p class="line-clamp-2">{{ book.description }}</p>
 
       <div class="flex justify-start gap-2" id="book-tags">
-        <div v-if="book.wordCount" class="badge badge-ghost">
-          {{ lengthLabel(book.wordCount) }}
+        <div v-if="book.word_count" class="badge badge-ghost">
+          {{ lengthLabel(book.word_count) }}
         </div>
-        <div v-if="book.readingEase" class="badge badge-ghost">
-          {{ readingEaseLabel(book.readingEase) }}
+        <div v-if="book.reading_ease" class="badge badge-ghost">
+          {{ readingEaseLabel(book.reading_ease) }}
         </div>
       </div>
       <div class="card-actions justify-end">

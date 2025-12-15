@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BookCard from '../components/BookCard.vue'
-import { onMounted, ref, computed } from 'vue'
+import FilterModal from '../components/FilterModal.vue'
+import { onMounted, ref } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 
 interface BookInfo {
@@ -18,34 +19,80 @@ interface BookInfo {
   reading_ease?: string | undefined
 }
 
-let books = ref<BookInfo[]>([])
+let selected_genres = ref<string[]>([])
+let selected_authors = ref<string[]>([])
+let selected_lengths = ref<string[]>([])
+let selected_reading_ease = ref<string[]>([])
 
-onMounted(async () => {
-  const { data, error }: { data: BookInfo[] | null; error: any } = await supabase
-    .from('books')
-    .select()
-
-  console.log('Data:', data)
-
-  if (error) {
-    console.error('Error fetching books: ', error)
-    return
-  }
-
-  books.value = data || []
+onMounted(() => {
+  handleFetch()
 })
 
-// console.log(books.value)
+// TODO: add a loading spinner
+
+const fetchedBooks = ref<BookInfo[]>([])
+const loading = ref(true)
+
+const handleFetch = async () => {
+  try {
+    loading.value = true
+
+    let query = supabase.from('books').select()
+    const filters: string[] = []
+
+    if (selected_genres.value.length > 0) {
+      const genreFilter = selected_genres.value.map((genre) => `subject.eq.${genre}`).join(',')
+      filters.push(genreFilter)
+    }
+
+    if (selected_authors.value.length > 0) {
+      const authorFilter = selected_authors.value.map((author) => `creator.eq.${author}`).join(',')
+      filters.push(authorFilter)
+    }
+
+    if (filters.length > 0) {
+      const allFilters = filters.join(',')
+      query = query.or(allFilters)
+    }
+
+    const { data, error, status } = await query
+
+    if (error && status !== 406) throw error
+    if (data) {
+      fetchedBooks.value = data
+    }
+  } catch (error) {
+    console.error('Error fetching books:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 const searchQuery = ref('')
 
-const searchedBooks = computed(() => {
-  if (!books) return []
+function filterGenre(selectedGenres: string[]) {
+  selected_genres.value = selectedGenres
+  console.log('Selected genres:', selected_genres.value)
+  handleFetch()
+}
 
-  return books.value.filter((book) => {
-    return book.title.toLowerCase().indexOf(searchQuery.value.toLowerCase()) != -1
-  })
-})
+function filterAuthor(selectedAuthors: string[]) {
+  selected_authors.value = selectedAuthors
+  console.log('Selected authors:', selected_authors.value)
+  handleFetch()
+}
+
+function filterLength(selectedLengths: string[]) {
+  selected_lengths.value = selectedLengths
+  console.log('Selected lengths:', selected_lengths.value)
+  handleFetch()
+}
+
+function filterReadingEase(selectedReadingEase: string[]) {
+  selected_reading_ease.value = selectedReadingEase
+  console.log('Selected reading ease:', selected_reading_ease.value)
+  handleFetch()
+}
 </script>
 
 <template>
@@ -66,12 +113,17 @@ const searchedBooks = computed(() => {
         </svg>
         <input type="search" required placeholder="Search..." v-model="searchQuery" />
       </label>
-      <button class="btn shrink-0">Filter</button>
+      <FilterModal
+        @filter_genres="filterGenre"
+        @filter_authors="filterAuthor"
+        @filter_lengths="filterLength"
+        @filter_reading_ease="filterReadingEase"
+      />
     </div>
 
-    <div v-if="searchedBooks.length > 0" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div v-if="fetchedBooks.length > 0" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard
-        v-for="b in searchedBooks"
+        v-for="b in fetchedBooks"
         :key="b.identifier"
         :identifier="b.identifier"
         :path="b.path"

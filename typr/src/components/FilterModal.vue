@@ -89,6 +89,26 @@ function addToAuthors(author: string) {
   }
   emit('filter_authors', filter_authors.value)
 }
+
+function addToLengths(length: string) {
+  const index = filter_lengths.value.indexOf(length)
+  if (index === -1) {
+    filter_lengths.value.push(length)
+  } else {
+    filter_lengths.value.splice(index, 1)
+  }
+  emit('filter_lengths', filter_lengths.value)
+}
+
+function addToReadingEase(ease: string) {
+  const index = filter_reading_ease.value.indexOf(ease)
+  if (index === -1) {
+    filter_reading_ease.value.push(ease)
+  } else {
+    filter_reading_ease.value.splice(index, 1)
+  }
+  emit('filter_reading_ease', filter_reading_ease.value)
+}
 </script>
 
 <template>
@@ -122,7 +142,7 @@ function addToAuthors(author: string) {
         <div class="collapse-title font-semibold">Length</div>
         <div class="collapse-content flex flex-col gap-2 text-sm">
           <label class="label" v-for="l in lengthsAvailable">
-            <input type="checkbox" class="checkbox" />
+            <input type="checkbox" class="checkbox" @click="addToLengths(l)" />
             {{ l }}
           </label>
         </div>
@@ -132,7 +152,7 @@ function addToAuthors(author: string) {
         <div class="collapse-title font-semibold">Reading Ease</div>
         <div class="collapse-content flex flex-col gap-2 text-sm">
           <label class="label" v-for="re in readingEaseAvailable">
-            <input type="checkbox" class="checkbox" />
+            <input type="checkbox" class="checkbox" @click="addToReadingEase(re)" />
             {{ re }}
           </label>
         </div>

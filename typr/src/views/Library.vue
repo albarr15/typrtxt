@@ -48,6 +48,35 @@ const handleFetch = async () => {
       filters.push(authorFilter)
     }
 
+    // TODO: not working
+    if (selected_lengths.value.length > 0) {
+      const lengthFilter = selected_lengths.value
+        .map((length) => {
+          if (length === 'Short (<80,000 words)') return 'word_count.lte.80000'
+          if (length === 'Medium (< 120,000 words)') {
+            return 'and(word_count.gt.80000,word_count.lte.120000)'
+          }
+          if (length === 'Long (> 120,000 words)') return 'word_count.gt.120000'
+        })
+        .join(',')
+      filters.push(lengthFilter)
+    }
+
+    if (selected_reading_ease.value.length > 0) {
+      const readingEaseFilter = selected_reading_ease.value
+        .map((re) => {
+          if (re === 'Very confusing') return 'reading_ease.lte.29'
+          if (re === 'Difficult') return 'and(reading_ease.gt.29,reading_ease.lte.49)'
+          if (re === 'Fairly difficult') return 'and(reading_ease.gt.49,reading_ease.lte.59)'
+          if (re === 'Standard') return 'and(reading_ease.gt.59,reading_ease.lte.69)'
+          if (re === 'Fairly easy') return 'and(reading_ease.gt.69,reading_ease.lte.79)'
+          if (re === 'Easy') return 'and(reading_ease.gt.79,reading_ease.lte.89)'
+          if (re === 'Very easy') return 'reading_ease.gt.89'
+        })
+        .join(',')
+      filters.push(readingEaseFilter)
+    }
+
     if (searchQuery != '') {
       query = query.ilike('title', `%${searchQuery.value}%`)
     }

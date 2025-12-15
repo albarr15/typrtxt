@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BookCard from '../components/BookCard.vue'
 import FilterModal from '../components/FilterModal.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 
 interface BookInfo {
@@ -28,8 +28,6 @@ onMounted(() => {
   handleFetch()
 })
 
-// TODO: add a loading spinner
-
 const fetchedBooks = ref<BookInfo[]>([])
 const loading = ref(true)
 
@@ -48,6 +46,10 @@ const handleFetch = async () => {
     if (selected_authors.value.length > 0) {
       const authorFilter = selected_authors.value.map((author) => `creator.eq.${author}`).join(',')
       filters.push(authorFilter)
+    }
+
+    if (searchQuery != '') {
+      query = query.ilike('title', `%${searchQuery.value}%`)
     }
 
     if (filters.length > 0) {
@@ -69,6 +71,10 @@ const handleFetch = async () => {
 }
 
 const searchQuery = ref('')
+
+watch(searchQuery, () => {
+  handleFetch()
+})
 
 function filterGenre(selectedGenres: string[]) {
   selected_genres.value = selectedGenres
@@ -120,8 +126,9 @@ function filterReadingEase(selectedReadingEase: string[]) {
         @filter_reading_ease="filterReadingEase"
       />
     </div>
+    <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
 
-    <div v-if="fetchedBooks.length > 0" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div v-if="fetchedBooks.length > 0 && !loading" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard
         v-for="b in fetchedBooks"
         :key="b.identifier"
@@ -138,7 +145,8 @@ function filterReadingEase(selectedReadingEase: string[]) {
         :reading_ease="b.reading_ease"
       />
     </div>
-    <h1 v-else class="text-center">No books found.</h1>
+
+    <h1 v-if="fetchedBooks.length == 0 && !loading" class="text-center">No books found.</h1>
   </div>
 </template>
 

@@ -52,14 +52,15 @@ const handleFetch = async () => {
     if (selected_lengths.value.length > 0) {
       const lengthFilter = selected_lengths.value
         .map((length) => {
-          if (length === 'Short (<80,000 words)') return 'word_count.lte.80000'
-          if (length === 'Medium (< 120,000 words)') {
+          if (length === 'Short (<= 80,000 words)') return 'word_count.lte.80000'
+          if (length === 'Medium (<= 120,000)') {
             return 'and(word_count.gt.80000,word_count.lte.120000)'
           }
-          if (length === 'Long (> 120,000 words)') return 'word_count.gt.120000'
+          if (length === 'Long (> 120,000)') return 'word_count.gt.120000'
         })
         .join(',')
       filters.push(lengthFilter)
+      console.log('Length filter:', lengthFilter)
     }
 
     if (selected_reading_ease.value.length > 0) {
@@ -85,6 +86,8 @@ const handleFetch = async () => {
       const allFilters = filters.join(',')
       query = query.or(allFilters)
     }
+
+    console.log('Total query:', query)
 
     const { data, error, status } = await query
 
@@ -156,6 +159,7 @@ function filterReadingEase(selectedReadingEase: string[]) {
       />
     </div>
     <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
+    Found {{ fetchedBooks.length }} books
 
     <div v-if="fetchedBooks.length > 0 && !loading" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard

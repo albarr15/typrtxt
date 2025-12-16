@@ -32,9 +32,9 @@ const lengthLabel = (wordCount: string | null) => {
   const wordCountNum = Number(wordCount)
 
   if (!wordCountNum) return null
-  if (wordCountNum <= 80000) return 'Short (<80,000 words)'
-  if (wordCountNum <= 120000) return 'Medium (< 120,000 words)'
-  return 'Long (> 120,000 words)'
+  if (wordCountNum <= 80000) return 'Short'
+  if (wordCountNum <= 120000) return 'Medium'
+  return 'Long'
 }
 
 // console.log(book.cover_url)

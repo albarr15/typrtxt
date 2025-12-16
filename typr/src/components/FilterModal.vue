@@ -8,17 +8,13 @@ let filter_lengths = ref<string[]>([])
 let filter_reading_ease = ref<string[]>([])
 
 let emit = defineEmits(['filter_genres', 'filter_authors', 'filter_lengths', 'filter_reading_ease'])
-emit('filter_genres', filter_genres.value)
-emit('filter_authors', filter_authors.value)
-emit('filter_lengths', filter_lengths.value)
-emit('filter_reading_ease', filter_reading_ease.value)
 
 let genresAvailable = ref<string[]>([])
 let authorsAvailable = ref<string[]>([])
 let lengthsAvailable = ref<string[]>([
-  'Short (<80,000 words)',
-  'Medium (< 120,000 words)',
-  'Long (> 120,000 words)',
+  'Short (<= 80,000 words)',
+  'Medium (<= 120,000)',
+  'Long (> 120,000)',
 ])
 let readingEaseAvailable = ref<string[]>([
   'Very confusing',
@@ -42,8 +38,6 @@ onMounted(async () => {
 
   genresAvailable.value.sort((a, b) => a.localeCompare(b))
 
-  console.log('Subject data:', genresAvailable.value)
-
   if (error) {
     console.error('Error fetching genres: ', error)
     return
@@ -61,8 +55,6 @@ onMounted(async () => {
       .filter((value, index, self) => self.indexOf(value) === index) || []
 
   authorsAvailable.value.sort((a, b) => a.localeCompare(b))
-
-  console.log('Author data:', authorsAvailable.value)
 
   if (error) {
     console.error('Error fetching authors: ', error)

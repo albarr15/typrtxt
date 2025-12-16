@@ -2,10 +2,11 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
+import { getEpubChapters } from '../../scripts/getEpubChapters'
 
 const props = defineProps({
   id: {
-    type: Number,
+    type: String,
     required: true,
   },
 })
@@ -15,7 +16,11 @@ console.log(props.id)
 const foundBook = ref<BookInfo | null>(null)
 const loading = ref<boolean>(true)
 
-onMounted(() => fetchBook())
+const textContent = ref<string[]>([])
+
+onMounted(() => {
+  fetchBook()
+})
 
 const fetchBook = async () => {
   try {
@@ -31,11 +36,26 @@ const fetchBook = async () => {
     if (data) {
       foundBook.value = data
       console.log('Fetched book:', foundBook.value)
+      getChapters()
     }
   } catch (error) {
     console.error('Error fetching books:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const getChapters = async () => {
+  try {
+    if (foundBook.value) {
+      console.log('Getting chapters for book id:', props.id)
+
+      textContent.value = await getEpubChapters(foundBook.value.path)
+      console.log('Fetched text content:', textContent.value)
+    }
+  } catch (error) {
+    console.error('Error fetching chapters:', error)
+    alert('Error fetching chapters')
   }
 }
 </script>
@@ -45,6 +65,13 @@ const fetchBook = async () => {
     <h1 class="font-semibold">{{ foundBook?.title }}</h1>
 
     {{ foundBook?.creator }}
+
+    chapter size:{{ textContent.length }}
+
+    <ol>
+      <li v-for="chapter in textContent">{{ chapter }}</li>
+      <br />
+    </ol>
   </div>
 </template>
 

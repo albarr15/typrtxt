@@ -33,10 +33,10 @@ const routes = [
   },
   {
     // lazy loaded route
-    path: '/book',
+    path: '/book/:id',
     name: 'Book',
     component: () => import('../views/BookOverview.vue'),
-    props: { book: false },
+    props: true,
   },
 ]
 

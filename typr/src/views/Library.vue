@@ -5,6 +5,7 @@ import { onMounted, ref, watch, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 
 interface BookInfo {
+  id: number
   identifier: string
   path: string
   title: string
@@ -198,7 +199,8 @@ function filterReadingEase(selectedReadingEase: string[]) {
     <div v-if="fetchedBooks.length > 0 && !loading" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard
         v-for="b in fetchedBooks"
-        :key="b.identifier"
+        :key="b.id"
+        :id="b.id"
         :identifier="b.identifier"
         :path="b.path"
         :title="b.title"

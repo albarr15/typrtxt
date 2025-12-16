@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 const book = defineProps<{
+  id: number
   identifier: string
   path: string
   title: string
@@ -72,7 +73,9 @@ const fetchedBookCover = ref<string>('')
         </div>
       </div>
       <div class="card-actions justify-end">
-        <router-link to="/book"><button class="btn btn-primary">Read</button></router-link>
+        <router-link :to="`/book/${book.id}`"
+          ><button class="btn btn-primary">Read</button></router-link
+        >
       </div>
     </div>
   </div>

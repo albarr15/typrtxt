@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, defineEmits, defineProps, watch, onMounted, reactive, computed } from 'vue'
+import { ref, watch, onMounted, reactive, computed } from 'vue'
 
 const textContent = defineProps({
   content: String,

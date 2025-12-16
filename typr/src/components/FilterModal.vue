@@ -31,10 +31,7 @@ onMounted(async () => {
     .from('books')
     .select('subject')
 
-  genresAvailable.value =
-    data
-      ?.map((item) => item['subject'])
-      .filter((value, index, self) => self.indexOf(value) === index) || []
+  genresAvailable.value = data ? [...new Set(data.map((item: any) => item['subject']))] : []
 
   genresAvailable.value.sort((a, b) => a.localeCompare(b))
 
@@ -49,10 +46,7 @@ onMounted(async () => {
     .from('books')
     .select('creator')
 
-  authorsAvailable.value =
-    data
-      ?.map((item) => item['creator'])
-      .filter((value, index, self) => self.indexOf(value) === index) || []
+  authorsAvailable.value = data ? [...new Set(data.map((item: any) => item['creator']))] : []
 
   authorsAvailable.value.sort((a, b) => a.localeCompare(b))
 
@@ -110,7 +104,7 @@ function addToReadingEase(ease: string) {
       <h3 class="pb-4 text-lg font-bold">Filter Search</h3>
 
       <div class="collapse-plus collapse border border-base-300 bg-base-100">
-        <input type="radio" name="my-accordion-3" checked="checked" />
+        <input type="radio" name="my-accordion-3" />
         <div class="collapse-title font-semibold">Genre</div>
         <div class="collapse-content flex flex-col gap-2 text-sm">
           <label class="label" v-for="g in genresAvailable">

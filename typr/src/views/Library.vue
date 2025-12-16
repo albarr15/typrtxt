@@ -82,7 +82,7 @@ const handleFetch = async () => {
       filters.push(readingEaseFilter)
     }
 
-    if (searchQuery != '') {
+    if (searchQuery.value != '') {
       query = query.ilike('title', `%${searchQuery.value}%`)
     }
 

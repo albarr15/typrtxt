@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BookCard from '../components/BookCard.vue'
 import FilterModal from '../components/FilterModal.vue'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 
 interface BookInfo {
@@ -31,11 +31,16 @@ onMounted(() => {
 const fetchedBooks = ref<BookInfo[]>([])
 const loading = ref(true)
 
+const currentPage = ref<number>(1)
+const booksPerPage = ref<number>(20)
+const totalPages = ref<number>(1)
+const count = ref<number>(0)
+
 const handleFetch = async () => {
   try {
     loading.value = true
 
-    let query = supabase.from('books').select()
+    let query = supabase.from('books').select('*', { count: 'exact' })
     const filters: string[] = []
 
     if (selected_genres.value.length > 0) {
@@ -48,7 +53,6 @@ const handleFetch = async () => {
       filters.push(authorFilter)
     }
 
-    // TODO: not working
     if (selected_lengths.value.length > 0) {
       const lengthFilter = selected_lengths.value
         .map((length) => {
@@ -87,13 +91,23 @@ const handleFetch = async () => {
       query = query.or(allFilters)
     }
 
-    console.log('Total query:', query)
-
-    const { data, error, status } = await query
+    const {
+      data,
+      error,
+      count: queryCount,
+      status,
+    } = await query
+      .order('title', { ascending: true })
+      .range(
+        (currentPage.value - 1) * booksPerPage.value,
+        currentPage.value * booksPerPage.value - 1,
+      )
 
     if (error && status !== 406) throw error
     if (data) {
+      totalPages.value = queryCount ? Math.ceil(queryCount / booksPerPage.value) : 1
       fetchedBooks.value = data
+      count.value = queryCount || 0
     }
   } catch (error) {
     console.error('Error fetching books:', error)
@@ -107,6 +121,11 @@ const searchQuery = ref('')
 watch(searchQuery, () => {
   handleFetch()
 })
+
+function changePage(selectedPage: number) {
+  currentPage.value = selectedPage
+  handleFetch()
+}
 
 function filterGenre(selectedGenres: string[]) {
   selected_genres.value = selectedGenres
@@ -159,7 +178,22 @@ function filterReadingEase(selectedReadingEase: string[]) {
       />
     </div>
     <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
-    Found {{ fetchedBooks.length }} books
+    <div v-if="!loading" class="flex justify-between">
+      Displaying {{ (currentPage - 1) * booksPerPage + 1 }} to
+      {{ Math.min(currentPage * booksPerPage, count) }} / {{ count }} books
+
+      <div class="join">
+        <button
+          class="btn join-item"
+          v-for="page in totalPages"
+          :key="page"
+          @click="changePage(page)"
+          :class="{ 'btn-active': currentPage === page }"
+        >
+          {{ page }}
+        </button>
+      </div>
+    </div>
 
     <div v-if="fetchedBooks.length > 0 && !loading" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <BookCard

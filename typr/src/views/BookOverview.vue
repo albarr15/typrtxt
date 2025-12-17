@@ -69,7 +69,8 @@ const getChapters = async () => {
     chapter size:{{ textContent.length }}
 
     <ol>
-      <li v-for="chapter in textContent">{{ chapter }}</li>
+      <p v-for="chapter in textContent" style="white-space: pre-wrap">{{ chapter }}</p>
+      <br />
       <br />
     </ol>
   </div>

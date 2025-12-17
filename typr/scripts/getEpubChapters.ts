@@ -27,7 +27,13 @@ export async function getEpubChapters(epubPath: string | ArrayBuffer): Promise<s
       if (!(chapter instanceof Document) || !chapter.body?.textContent) {
         return ''
       }
-      return chapter.body.textContent
+
+      const tempWrapper = document.createElement('div')
+      tempWrapper.style.whiteSpace = 'pre'
+      tempWrapper.appendChild(chapter.body.cloneNode(true))
+
+      // console.log(tempWrapper.innerText)
+      return tempWrapper.innerText || ''
     })()
 
     sectionPromises.push(sectionPromise)

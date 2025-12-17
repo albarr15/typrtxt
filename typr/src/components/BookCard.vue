@@ -73,7 +73,7 @@ const fetchedBookCover = ref<string>('')
         </div>
       </div>
       <div class="card-actions justify-end">
-        <router-link :to="`/book/${book.id}`"
+        <router-link :to="`/text-content/${book.id}`"
           ><button class="btn btn-primary">Read</button></router-link
         >
       </div>

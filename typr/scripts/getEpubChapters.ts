@@ -19,7 +19,7 @@ export async function getEpubChapters(epubPath: string | ArrayBuffer): Promise<s
   const sectionPromises: Promise<string>[] = []
 
   book.spine.each((section: Section) => {
-    console.log('Processing section:', section.href)
+    // console.log('Processing section:', section.href)
     const sectionPromise = (async () => {
       if (ignoredSections.has(section.href)) return ''
       const chapter = await book.load(section.href)
@@ -33,12 +33,12 @@ export async function getEpubChapters(epubPath: string | ArrayBuffer): Promise<s
       tempWrapper.appendChild(chapter.body.cloneNode(true))
 
       // console.log(tempWrapper.innerText)
-      return tempWrapper.innerText || ''
+      return tempWrapper.textContent || ''
     })()
 
     sectionPromises.push(sectionPromise)
   })
 
   const content = await Promise.all(sectionPromises)
-  return content
+  return content.filter((chapterText) => chapterText.trim().length > 0)
 }

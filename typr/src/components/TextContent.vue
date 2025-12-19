@@ -3,7 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
-import test from 'node:test'
+import { Chapter } from '../../scripts/getEpubChapters'
 
 const props = defineProps({
   id: {
@@ -25,8 +25,11 @@ interface TextChar {
 const foundBook = ref<BookInfo | null>(null)
 const loading = ref<boolean>(true)
 
-const textContent1 = ref<string[]>([])
+const textContent1 = ref<Chapter[]>([])
+const chapterTitles = ref<string[]>([])
 const charMap = ref()
+const chapterIndex = ref<number>(0)
+const chapterTitle = ref<string>('')
 
 const fetchBook = async () => {
   try {
@@ -57,6 +60,20 @@ const getChapters = async () => {
       // console.log('Getting chapters for book id:', props.id)
 
       textContent1.value = await getEpubChapters(foundBook.value.path)
+      console.log(textContent1.value)
+
+      chapterTitles.value = textContent1.value.map((chapter) => chapter.title)
+
+      // Set current chapter index/title
+      const foundCurrentChapterIdx = foundBook.value.current_chapter_idx ?? 0
+      chapterIndex.value = foundCurrentChapterIdx
+
+      const foundCurrentChapterTitle =
+        chapterTitles.value[chapterIndex.value] || foundBook.value.title
+      chapterTitle.value = foundCurrentChapterTitle
+
+      emit('updateBookInfo', foundBook.value.title, chapterTitle.value)
+
       initializeCharMap()
     }
   } catch (error) {
@@ -71,11 +88,11 @@ let last_typed_time = ref(Date.now())
 let timer_running = ref(false)
 let running_time = ref(0) // in seconds
 
-let emit = defineEmits(['current_running_time', 'updateStats'])
+let emit = defineEmits(['current_running_time', 'updateStats', 'updateBookInfo'])
 emit('current_running_time', running_time.value)
 
 function initializeCharMap() {
-  const text = textContent1.value.at(0)
+  const text = textContent1.value.at(chapterIndex.value)?.content
   if (!text) {
     charMap.value = []
     console.error('No text content found')
@@ -100,7 +117,7 @@ function initializeCharMap() {
         correct: false,
       }
       if (char === '\n') {
-        textChar.displayChar = '↵\n'
+        textChar.displayChar = '\n\n'
       }
       return textChar
     })
@@ -176,12 +193,26 @@ watch(typed_id, (newId) => {
 let testOngoing = ref<boolean>(false)
 let testIntervalId: ReturnType<typeof setInterval> | null = null
 
+watch(chapterIndex, () => {
+  if (!foundBook.value) return
+
+  chapterTitle.value = chapterTitles.value[chapterIndex.value] || foundBook.value.title
+  foundBook.value.current_chapter_idx = chapterIndex.value
+  foundBook.value.current_chapter_title = chapterTitle.value
+
+  console.log('UPDATED CHAP TITLE: ', chapterTitle.value)
+  emit('updateBookInfo', foundBook.value.title, chapterTitle.value)
+
+  initializeCharMap()
+})
+
 watch(testOngoing, (testOngoing) => {
   if (testOngoing) {
     testIntervalId = setInterval(() => emit('updateStats', stats.value), 1000)
   } else if (testIntervalId !== null && !testOngoing) {
     clearInterval(testIntervalId)
     testIntervalId = null
+    resetTypingTest()
   }
 })
 
@@ -211,7 +242,7 @@ window.addEventListener('keydown', (event) => {
     previousChar.done = false
     previousChar.correct = false
 
-    if (previousChar.char == '\n') previousChar.displayChar = '↵\n'
+    if (previousChar.char == '\n') previousChar.displayChar = '\n\n'
     else previousChar.displayChar = previousChar.char
 
     return
@@ -279,10 +310,11 @@ function startTimer() {
     }
 
     if (charMap?.value.length === typed_id.value) {
-      alert('Test completed!')
+      alert('Test completed! Press Enter to continue to next chapter.')
       clearInterval(intervalId)
       timer_running.value = false
       testOngoing.value = false
+      chapterIndex.value++
       return
     }
 
@@ -291,34 +323,77 @@ function startTimer() {
     emit('current_running_time', running_time.value)
   }, 200)
 }
+
+function resetTypingTest() {
+  typed_id.value = 0
+  totalKeypresses.value = 0
+  running_time.value = 0
+  last_typed_time.value = Date.now()
+  if (charMap.value) {
+    charMap.value.forEach((char: TextChar) => {
+      char.done = false
+      char.correct = false
+      char.displayChar = char.char === '\n' ? '\n\n' : char.char
+    })
+  }
+}
+
+function selectChapter(idx: number) {
+  chapterIndex.value = idx
+  const modal = document.getElementById('chaptermodal') as HTMLDialogElement
+  modal?.close()
+}
+
+const showChapterModal = ref<Boolean>(false)
 </script>
 
 <template>
-  <div
-    tabindex="0"
-    class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
-  >
-    <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
+  <div>
+    <span v-if="loading" class="loading mx-auto my-auto loading-xl loading-spinner"></span>
 
-    <div id="text-content" class="relative">
-      <span
-        v-if="!loading"
-        class="absolute animate-pulse text-5xl font-semibold text-primary"
-        ref="caret"
-        >|</span
-      >
-      <span
-        class="whitespace-pre-wrap"
-        :class="{
-          correct: char.correct,
-          incorrect: char.done && !char.correct,
-          'text-ghost': !char.done,
-        }"
-        :id="'char-' + char.id"
-        v-for="char in charMap"
-        :key="char.id"
-        >{{ char.displayChar }}</span
-      >
+    <button class="btn" onclick="chaptermodal.showModal()">open modal</button>
+    <dialog id="chaptermodal" class="modal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Select Chapter</h3>
+        <div class="flex flex-col items-center">
+          <button
+            class="btn py-4"
+            v-for="(chapter, idx) in chapterTitles"
+            :key="idx"
+            @click="selectChapter(idx)"
+          >
+            {{ chapter }}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+    <div
+      tabindex="0"
+      class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
+    >
+      <div id="text-content" class="relative">
+        <span
+          v-if="!loading"
+          class="absolute animate-pulse text-5xl font-semibold text-primary"
+          ref="caret"
+          >|</span
+        >
+        <span
+          class="whitespace-pre-wrap"
+          :class="{
+            correct: char.correct,
+            incorrect: char.done && !char.correct,
+            'text-ghost': !char.done,
+          }"
+          :id="'char-' + char.id"
+          v-for="char in charMap"
+          :key="char.id"
+          >{{ char.displayChar }}</span
+        >
+      </div>
     </div>
   </div>
 </template>

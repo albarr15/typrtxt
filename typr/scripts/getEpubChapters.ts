@@ -1,7 +1,12 @@
 import ePub from 'epubjs'
 import type Section from 'epubjs/types/section'
 
-export async function getEpubChapters(epubPath: string | ArrayBuffer): Promise<string[]> {
+export interface Chapter {
+  title: string
+  content: string
+}
+
+export async function getEpubChapters(epubPath: string | ArrayBuffer): Promise<Chapter[]> {
   const book = ePub(epubPath)
   await book.ready
 
@@ -16,29 +21,33 @@ export async function getEpubChapters(epubPath: string | ArrayBuffer): Promise<s
     'text/uncopyright.xhtml',
   ])
 
-  const sectionPromises: Promise<string>[] = []
+  const sectionPromises: Promise<Chapter | null>[] = []
 
   book.spine.each((section: Section) => {
-    // console.log('Processing section:', section.href)
     const sectionPromise = (async () => {
-      if (ignoredSections.has(section.href)) return ''
-      const chapter = await book.load(section.href)
+      if (ignoredSections.has(section.href)) return null
 
-      if (!(chapter instanceof Document) || !chapter.body?.textContent) {
-        return ''
-      }
+      const chapterDoc = await book.load(section.href)
+      if (!(chapterDoc instanceof Document) || !chapterDoc.body) return null
 
+      // Extract title from the first heading
+      const heading = chapterDoc.body.querySelector('h1, h2, h3, h4, h5, h6')
+      const title = heading?.textContent?.trim() || section.href
+
+      // Extract full text
       const tempWrapper = document.createElement('div')
       tempWrapper.style.whiteSpace = 'pre'
-      tempWrapper.appendChild(chapter.body.cloneNode(true))
+      tempWrapper.appendChild(chapterDoc.body.cloneNode(true))
+      const content = tempWrapper.textContent?.trim() || ''
 
-      // console.log(tempWrapper.innerText)
-      return tempWrapper.textContent || ''
+      if (!content) return null
+
+      return { title, content }
     })()
 
     sectionPromises.push(sectionPromise)
   })
 
-  const content = await Promise.all(sectionPromises)
-  return content.filter((chapterText) => chapterText.trim().length > 0)
+  const chapters = await Promise.all(sectionPromises)
+  return chapters.filter((c): c is Chapter => c !== null)
 }

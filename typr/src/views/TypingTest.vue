@@ -3,9 +3,9 @@ import { ref } from 'vue'
 
 import Keyboard from '../components/Keyboard.vue'
 import TextContent from '../components/TextContent.vue'
+import { BookInfo } from '../types/book'
 
 const props = defineProps({
-  content: String,
   id: {
     type: String,
     required: true,
@@ -30,6 +30,8 @@ function updateTimer(newTime: number) {
 var stats = ref()
 var accuracy = ref(0)
 var wpm = ref(0)
+let bookChapter = ref('')
+let bookTitle = ref('Book Title')
 
 function updateStats(newStats: Object) {
   stats.value = newStats
@@ -37,6 +39,11 @@ function updateStats(newStats: Object) {
 
   accuracy.value = stats.value.accuracy
   wpm.value = stats.value.netWPM
+}
+
+function updateBookInfo(title: string, chapter: string) {
+  bookTitle.value = title
+  bookChapter.value = chapter
 }
 </script>
 
@@ -52,8 +59,8 @@ function updateStats(newStats: Object) {
       >
         <div>{{ displayTime }}</div>
         <div class="flex flex-col items-center justify-center">
-          <div>The Little Prince</div>
-          <div class="font-bold">CHAPTER 21</div>
+          <div>{{ bookTitle }}</div>
+          <div class="font-bold">{{ bookChapter }}</div>
         </div>
 
         <div class="flex items-center justify-center gap-5">
@@ -62,7 +69,12 @@ function updateStats(newStats: Object) {
         </div>
       </div>
       <!-- text content -->
-      <TextContent :id="props.id" @current_running_time="updateTimer" @updateStats="updateStats" />
+      <TextContent
+        :id="props.id"
+        @current_running_time="updateTimer"
+        @updateStats="updateStats"
+        @updateBookInfo="updateBookInfo"
+      />
     </div>
     <!-- keyboard ui -->
     <Keyboard />

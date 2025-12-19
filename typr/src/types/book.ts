@@ -12,4 +12,6 @@ export interface BookInfo {
   subjects?: string | string[] | undefined
   word_count?: string | undefined
   reading_ease?: string | undefined
+  current_chapter_title?: string | undefined
+  current_chapter_idx?: number | undefined
 }

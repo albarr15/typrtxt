@@ -5,7 +5,6 @@ import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
 
 const props = defineProps({
-  content: String,
   id: {
     type: String,
     required: true,
@@ -75,13 +74,14 @@ emit('current_running_time', running_time.value)
 
 function initializeCharMap() {
   console.log('TextContent1: ', textContent1.value)
-  charMap.value =
+
+  const tempMap =
     textContent1.value
-      .at(1)
+      .at(0)
       ?.split('')
-      .map((char, idx) => {
+      .map((char) => {
         let textChar = {
-          id: idx,
+          id: 0,
           char: char,
           displayChar: char,
           done: false,
@@ -89,9 +89,17 @@ function initializeCharMap() {
         }
         return textChar
       })
-      .filter((item) => !(item.char == '\t')) ?? []
+      .filter((item) => !(item.char == '\t' || item.char == '\n')) ?? []
 
-  console.log('Character map:', charMap.value)
+  charMap.value =
+    tempMap
+      ?.map((text_char, idx) => {
+        text_char.id = idx
+        return text_char
+      })
+      .slice(0, 50) ?? []
+
+  console.log('Char map:', charMap.value)
 }
 
 // const charMap = ref(
@@ -135,6 +143,7 @@ var stats = computed(() => {
 const caret = ref<HTMLElement | null>(null)
 
 watch(typed_id, (newId) => {
+  console.log('Typed ID changed to: ' + newId)
   emit('updateStats', stats.value)
 
   // start test timer
@@ -178,16 +187,18 @@ onMounted(() => {
 })
 
 window.addEventListener('keydown', (event) => {
+  console.log('Key pressed1: ' + event.key)
+
   if (event.defaultPrevented) {
     return // Do nothing if the event was already processed
   }
 
   event.preventDefault()
-  // console.log('Typed id: ' + typed_id.value)
-
-  // console.log('Key pressed: ' + event.key)
+  console.log('Event key: ' + event.key)
+  console.log('Typed id: ' + typed_id.value)
 
   const current_char = charMap.value.find((x: TextChar) => x.id === typed_id.value)
+  console.log('Current char:', current_char)
   if (!current_char) return
 
   if (event.key === 'Backspace') {
@@ -249,7 +260,7 @@ function startTimer() {
       return
     }
 
-    if (textContent1?.value.length === typed_id.value) {
+    if (charMap?.value.length === typed_id.value) {
       alert('Test completed!')
       clearInterval(intervalId)
       timer_running.value = false
@@ -270,6 +281,8 @@ function startTimer() {
     class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
   >
     <div id="text-content" class="relative">
+      <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
+
       <span class="absolute animate-pulse text-5xl font-semibold text-primary" ref="caret">|</span>
       <span
         class="whitespace-pre-wrap"

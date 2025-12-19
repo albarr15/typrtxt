@@ -1,9 +1,61 @@
 <script setup lang="ts">
-import { ref, defineEmits, defineProps, watch, onMounted, reactive, computed } from 'vue'
+import { ref, watch, onMounted, reactive, computed } from 'vue'
+import { supabase } from '../lib/supabaseClient'
+import { BookInfo } from '../types/book'
+import { getEpubChapters } from '../../scripts/getEpubChapters'
 
-const textContent = defineProps({
+const props = defineProps({
   content: String,
+  id: {
+    type: String,
+    required: true,
+  },
 })
+
+// console.log(props.id)
+
+const foundBook = ref<BookInfo | null>(null)
+const loading = ref<boolean>(true)
+
+const textContent1 = ref<string[]>([])
+const charMap = ref()
+
+const fetchBook = async () => {
+  try {
+    loading.value = true
+
+    const { data, error, status } = await supabase
+      .from('books')
+      .select('*')
+      .eq('id', props.id)
+      .single()
+
+    if (error && status !== 406) throw error
+    if (data) {
+      foundBook.value = data
+      // console.log('Fetched book:', foundBook.value)
+      getChapters()
+    }
+  } catch (error) {
+    console.error('Error fetching books:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const getChapters = async () => {
+  try {
+    if (foundBook.value) {
+      // console.log('Getting chapters for book id:', props.id)
+
+      textContent1.value = await getEpubChapters(foundBook.value.path)
+      initializeCharMap()
+    }
+  } catch (error) {
+    console.error('Error fetching chapters:', error)
+    alert('Error fetching chapters')
+  }
+}
 
 let typed_id = ref(0) // id of the last typed character
 let last_typed_time = ref(Date.now())
@@ -13,18 +65,45 @@ let running_time = ref(0) // in seconds
 let emit = defineEmits(['current_running_time', 'updateStats'])
 emit('current_running_time', running_time.value)
 
-const charMap = ref(
-  textContent.content?.split('').map((char, idx) => {
-    let textChar = {
-      id: idx,
-      char: char,
-      displayChar: char,
-      done: false,
-      correct: false,
-    }
-    return textChar
-  }) ?? [],
-)
+console.log('Text content1: ', textContent1.value)
+
+function initializeCharMap() {
+  console.log('Fetched text content:', textContent1.value)
+
+  console.log('TextContent1: ', textContent1.value)
+  charMap.value =
+    textContent1.value
+      .at(0)
+      ?.split('')
+      .map((char, idx) => {
+        let textChar = {
+          id: idx,
+          char: char,
+          displayChar: char,
+          done: false,
+          correct: false,
+        }
+        return textChar
+      }) ?? []
+
+  console.log('Character map:', charMap.value)
+}
+
+// const charMap = ref(
+//   textContent1.value
+//     .at(0)
+//     ?.split('')
+//     .map((char, idx) => {
+//       let textChar = {
+//         id: idx,
+//         char: char,
+//         displayChar: char,
+//         done: false,
+//         correct: false,
+//       }
+//       return textChar
+//     }) ?? [],
+// )
 
 var stats = computed(() => {
   const minutes = running_time.value / 60
@@ -90,7 +169,7 @@ watch(typed_id, (newId) => {
 })
 
 onMounted(() => {
-  // Animating text cursor
+  fetchBook()
 })
 
 window.addEventListener('keydown', (event) => {
@@ -165,7 +244,7 @@ function startTimer() {
       return
     }
 
-    if (textContent.content?.length === typed_id.value) {
+    if (textContent1?.value.length === typed_id.value) {
       alert('Test completed!')
       clearInterval(intervalId)
       timer_running.value = false
@@ -185,6 +264,10 @@ function startTimer() {
     tabindex="0"
     class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
   >
+    <!-- chapter size:{{ textContent1.length }} -->
+
+    <!-- <p v-for="chapter in textContent1" style="white-space: pre-wrap">{{ chapter }}</p> -->
+
     <div id="text-content" class="relative">
       <span class="absolute animate-pulse text-5xl font-semibold text-primary" ref="caret">|</span>
       <span

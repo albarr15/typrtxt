@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+
 import NavigationBar from './components/NavigationBar.vue'
 import Footer from './components/Footer.vue'
 </script>
 
 <template>
-  <div class="flex size-full flex-col items-center justify-between">
+  <div class="flex min-h-screen w-full flex-col items-center bg-base-300">
     <NavigationBar />
-    <router-view />
+    <router-view class="main" />
     <Footer />
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.main {
+  flex: 1;
+}
+</style>

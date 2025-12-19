@@ -3,7 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
-import { triggerAsyncId } from 'async_hooks'
+import test from 'node:test'
 
 const props = defineProps({
   id: {
@@ -66,6 +66,7 @@ const getChapters = async () => {
 }
 
 let typed_id = ref(0) // id of the last typed character
+let totalKeypresses = ref<number>(0)
 let last_typed_time = ref(Date.now())
 let timer_running = ref(false)
 let running_time = ref(0) // in seconds
@@ -74,8 +75,6 @@ let emit = defineEmits(['current_running_time', 'updateStats'])
 emit('current_running_time', running_time.value)
 
 function initializeCharMap() {
-  console.log('TextContent1: ', textContent1.value)
-
   const text = textContent1.value.at(0)
   if (!text) {
     charMap.value = []
@@ -91,7 +90,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    .slice(0, 300) //TEMP: limit first 100 characters
+    .slice(0, 50) //TEMP: limit first 300 characters
     .map((char, id) => {
       let textChar = {
         id,
@@ -102,7 +101,6 @@ function initializeCharMap() {
       }
       if (char === '\n') {
         textChar.displayChar = '↵\n'
-        textChar.char = 'Enter'
       }
       return textChar
     })
@@ -114,11 +112,14 @@ function initializeCharMap() {
 
 var stats = computed(() => {
   const minutes = running_time.value / 60
-  const typedChars = charMap.value.filter((c: TextChar) => c.done).length
+  // const typedChars = charMap.value.filter((c: TextChar) => c.done).length
+  const typedChars = totalKeypresses.value
+
   const incorrectChars = charMap.value.filter((c: TextChar) => c.done && !c.correct).length
 
-  const grossWPM = typed_id.value / 5
-  const netWPM = minutes > 0 ? (grossWPM - incorrectChars) / minutes : 0
+  const grossNumerator = typedChars / 5
+  const grossWPM = minutes > 0 ? grossNumerator / minutes : 0
+  const netWPM = minutes > 0 ? (grossNumerator - incorrectChars) / minutes : 0
 
   const correctChars = charMap.value.filter((c: TextChar) => c.done && c.correct).length
   const accuracy = Math.round((correctChars / typedChars) * 100) || 0
@@ -137,9 +138,6 @@ var stats = computed(() => {
 const caret = ref<HTMLElement | null>(null)
 
 watch(typed_id, (newId) => {
-  console.log('Typed ID changed to: ' + newId)
-  emit('updateStats', stats.value)
-
   // start test timer
   last_typed_time.value = Date.now()
 
@@ -175,6 +173,17 @@ watch(typed_id, (newId) => {
     // console.log(currentCharSpan)
   }
 })
+let testOngoing = ref<boolean>(false)
+let testIntervalId: ReturnType<typeof setInterval> | null = null
+
+watch(testOngoing, (testOngoing) => {
+  if (testOngoing) {
+    testIntervalId = setInterval(() => emit('updateStats', stats.value), 1000)
+  } else if (testIntervalId !== null && !testOngoing) {
+    clearInterval(testIntervalId)
+    testIntervalId = null
+  }
+})
 
 onMounted(() => {
   fetchBook()
@@ -186,11 +195,12 @@ window.addEventListener('keydown', (event) => {
   }
 
   event.preventDefault()
-  // console.log('Event key: ' + event.key)
-  // console.log('Typed id: ' + typed_id.value)
+
+  if (!testOngoing.value) {
+    testOngoing.value = true
+  }
 
   const current_char = charMap.value.find((x: TextChar) => x.id === typed_id.value)
-  // console.log('Current char:', current_char)
   if (!current_char) return
 
   if (event.key === 'Backspace') {
@@ -199,12 +209,16 @@ window.addEventListener('keydown', (event) => {
     const previousChar = charMap.value.find((x: TextChar) => x.id === typed_id.value)
     if (!previousChar) return
     previousChar.done = false
-    previousChar.displayChar = previousChar.char
     previousChar.correct = false
+
+    if (previousChar.char == '\n') previousChar.displayChar = '↵\n'
+    else previousChar.displayChar = previousChar.char
+
     return
   }
 
   if (event.key === ' ') {
+    totalKeypresses.value++
     typed_id.value++
     current_char.done = true
     current_char.displayChar = ' '
@@ -219,12 +233,20 @@ window.addEventListener('keydown', (event) => {
 
   if (event.key.length === 1) {
     typed_id.value++
+    totalKeypresses.value++
     current_char.done = true
   }
 
   if (event.key === 'Enter') {
     typed_id.value++
+    totalKeypresses.value++
     current_char.done = true
+    if (current_char.char === '\n') {
+      current_char.correct = true
+    } else {
+      current_char.correct = false
+    }
+    return
   }
 
   if (event.key === current_char.char) {
@@ -260,11 +282,11 @@ function startTimer() {
       alert('Test completed!')
       clearInterval(intervalId)
       timer_running.value = false
+      testOngoing.value = false
       return
     }
 
     var delta = Date.now() - start
-    // console.log('Timer: ' + Math.floor(delta / 1000) + 's')
     running_time.value = Math.floor(delta / 1000)
     emit('current_running_time', running_time.value)
   }, 200)
@@ -276,9 +298,9 @@ function startTimer() {
     tabindex="0"
     class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
   >
-    <div id="text-content" class="relative">
-      <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
+    <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
 
+    <div id="text-content" class="relative">
       <span
         v-if="!loading"
         class="absolute animate-pulse text-5xl font-semibold text-primary"

@@ -39,13 +39,6 @@ const routes = [
     component: () => import('../views/BookOverview.vue'),
     props: true,
   },
-  {
-    // lazy loaded route
-    path: '/text-content/:id',
-    name: 'TextContent',
-    component: () => import('../components/TextContent.vue'),
-    props: true,
-  },
 ]
 
 const router = createRouter({

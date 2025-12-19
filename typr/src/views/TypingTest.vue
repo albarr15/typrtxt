@@ -12,8 +12,6 @@ const props = defineProps({
   },
 })
 
-console.log(props.id)
-
 var current_running_time = ref(0)
 var displayTime = ref('00:00:00')
 

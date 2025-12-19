@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Key from './Key.vue'
 
-import { defineProps, ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 
 // Highlight key on press
 

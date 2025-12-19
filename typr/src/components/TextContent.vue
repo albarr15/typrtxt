@@ -3,6 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
+import { triggerAsyncId } from 'async_hooks'
 
 const props = defineProps({
   id: {
@@ -75,48 +76,41 @@ emit('current_running_time', running_time.value)
 function initializeCharMap() {
   console.log('TextContent1: ', textContent1.value)
 
-  const tempMap =
-    textContent1.value
-      .at(0)
-      ?.split('')
-      .map((char) => {
-        let textChar = {
-          id: 0,
-          char: char,
-          displayChar: char,
-          done: false,
-          correct: false,
-        }
-        return textChar
-      })
-      .filter((item) => !(item.char == '\t' || item.char == '\n')) ?? []
+  const text = textContent1.value.at(0)
+  if (!text) {
+    charMap.value = []
+    console.error('No text content found')
+    return
+  }
 
-  charMap.value =
-    tempMap
-      ?.map((text_char, idx) => {
-        text_char.id = idx
-        return text_char
-      })
-      .slice(0, 50) ?? []
+  const characters = text
+    .split('')
+    .filter((char) => char !== '\t') // remove tabs
+    .filter((char, idx, arr) => {
+      if (char === '\n' && (arr[idx - 1] === '\n' || idx == 0)) {
+        return false // remove consecutive newlines
+      } else return true
+    })
+    .slice(0, 300) //TEMP: limit first 100 characters
+    .map((char, id) => {
+      let textChar = {
+        id,
+        char,
+        displayChar: char,
+        done: false,
+        correct: false,
+      }
+      if (char === '\n') {
+        textChar.displayChar = '↵\n'
+        textChar.char = 'Enter'
+      }
+      return textChar
+    })
 
-  console.log('Char map:', charMap.value)
+  charMap.value = characters
+
+  // console.log('Char map:', charMap.value)
 }
-
-// const charMap = ref(
-//   textContent1.value
-//     .at(0)
-//     ?.split('')
-//     .map((char, idx) => {
-//       let textChar = {
-//         id: idx,
-//         char: char,
-//         displayChar: char,
-//         done: false,
-//         correct: false,
-//       }
-//       return textChar
-//     }) ?? [],
-// )
 
 var stats = computed(() => {
   const minutes = running_time.value / 60
@@ -187,18 +181,16 @@ onMounted(() => {
 })
 
 window.addEventListener('keydown', (event) => {
-  console.log('Key pressed1: ' + event.key)
-
   if (event.defaultPrevented) {
     return // Do nothing if the event was already processed
   }
 
   event.preventDefault()
-  console.log('Event key: ' + event.key)
-  console.log('Typed id: ' + typed_id.value)
+  // console.log('Event key: ' + event.key)
+  // console.log('Typed id: ' + typed_id.value)
 
   const current_char = charMap.value.find((x: TextChar) => x.id === typed_id.value)
-  console.log('Current char:', current_char)
+  // console.log('Current char:', current_char)
   if (!current_char) return
 
   if (event.key === 'Backspace') {
@@ -228,9 +220,13 @@ window.addEventListener('keydown', (event) => {
   if (event.key.length === 1) {
     typed_id.value++
     current_char.done = true
-
-    current_char.displayChar = event.key
   }
+
+  if (event.key === 'Enter') {
+    typed_id.value++
+    current_char.done = true
+  }
+
   if (event.key === current_char.char) {
     current_char.correct = true
   } else {
@@ -283,7 +279,12 @@ function startTimer() {
     <div id="text-content" class="relative">
       <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
 
-      <span class="absolute animate-pulse text-5xl font-semibold text-primary" ref="caret">|</span>
+      <span
+        v-if="!loading"
+        class="absolute animate-pulse text-5xl font-semibold text-primary"
+        ref="caret"
+        >|</span
+      >
       <span
         class="whitespace-pre-wrap"
         :class="{

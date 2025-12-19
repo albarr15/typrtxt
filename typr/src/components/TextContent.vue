@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, reactive, computed } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
@@ -11,6 +11,14 @@ const props = defineProps({
     required: true,
   },
 })
+
+interface TextChar {
+  id: number
+  char: string
+  displayChar: string
+  done: boolean
+  correct: boolean
+}
 
 // console.log(props.id)
 
@@ -65,15 +73,11 @@ let running_time = ref(0) // in seconds
 let emit = defineEmits(['current_running_time', 'updateStats'])
 emit('current_running_time', running_time.value)
 
-console.log('Text content1: ', textContent1.value)
-
 function initializeCharMap() {
-  console.log('Fetched text content:', textContent1.value)
-
   console.log('TextContent1: ', textContent1.value)
   charMap.value =
     textContent1.value
-      .at(0)
+      .at(1)
       ?.split('')
       .map((char, idx) => {
         let textChar = {
@@ -84,7 +88,8 @@ function initializeCharMap() {
           correct: false,
         }
         return textChar
-      }) ?? []
+      })
+      .filter((item) => !(item.char == '\t')) ?? []
 
   console.log('Character map:', charMap.value)
 }
@@ -107,13 +112,13 @@ function initializeCharMap() {
 
 var stats = computed(() => {
   const minutes = running_time.value / 60
-  const typedChars = charMap.value.filter((c) => c.done).length
-  const incorrectChars = charMap.value.filter((c) => c.done && !c.correct).length
+  const typedChars = charMap.value.filter((c: TextChar) => c.done).length
+  const incorrectChars = charMap.value.filter((c: TextChar) => c.done && !c.correct).length
 
   const grossWPM = typed_id.value / 5
   const netWPM = minutes > 0 ? (grossWPM - incorrectChars) / minutes : 0
 
-  const correctChars = charMap.value.filter((c) => c.done && c.correct).length
+  const correctChars = charMap.value.filter((c: TextChar) => c.done && c.correct).length
   const accuracy = Math.round((correctChars / typedChars) * 100) || 0
 
   return {
@@ -182,13 +187,13 @@ window.addEventListener('keydown', (event) => {
 
   // console.log('Key pressed: ' + event.key)
 
-  const current_char = charMap.value.find((x) => x.id === typed_id.value)
+  const current_char = charMap.value.find((x: TextChar) => x.id === typed_id.value)
   if (!current_char) return
 
   if (event.key === 'Backspace') {
     if (typed_id.value === 0) return
     typed_id.value--
-    const previousChar = charMap.value.find((x) => x.id === typed_id.value)
+    const previousChar = charMap.value.find((x: TextChar) => x.id === typed_id.value)
     if (!previousChar) return
     previousChar.done = false
     previousChar.displayChar = previousChar.char
@@ -264,10 +269,6 @@ function startTimer() {
     tabindex="0"
     class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
   >
-    <!-- chapter size:{{ textContent1.length }} -->
-
-    <!-- <p v-for="chapter in textContent1" style="white-space: pre-wrap">{{ chapter }}</p> -->
-
     <div id="text-content" class="relative">
       <span class="absolute animate-pulse text-5xl font-semibold text-primary" ref="caret">|</span>
       <span

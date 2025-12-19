@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 
 import ePub from 'epubjs'
 
 import Keyboard from '../components/Keyboard.vue'
 import TextContent from '../components/TextContent.vue'
+
+const props = defineProps({
+  content: String,
+  id: {
+    type: String,
+    required: true,
+  },
+})
+
+console.log(props.id)
 
 const extractedText = ref('')
 
@@ -96,6 +106,7 @@ function updateStats(newStats: Object) {
       </div>
       <!-- text content -->
       <TextContent
+        :id="props.id"
         :content="textContent"
         @current_running_time="updateTimer"
         @updateStats="updateStats"

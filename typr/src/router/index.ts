@@ -15,9 +15,10 @@ const routes = [
   },
   {
     // lazy loaded route
-    path: '/test',
+    path: '/test/:id',
     name: 'TypingTest',
     component: () => import('../views/TypingTest.vue'),
+    props: true,
   },
   {
     // lazy loaded route

@@ -10,7 +10,15 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  chapIdx: {
+    type: Number,
+    required: true,
+  },
 })
+
+// let chapterIndex = ref<number>(0)
+
+console.log('chapIdx: ', props.chapIdx)
 
 interface TextChar {
   id: number
@@ -28,7 +36,6 @@ const loading = ref<boolean>(true)
 const textContent1 = ref<Chapter[]>([])
 const chapterTitles = ref<string[]>([])
 const charMap = ref<TextChar[]>([])
-const chapterIndex = ref<number>(0)
 const chapterTitle = ref<string>('')
 
 const fetchBook = async () => {
@@ -60,35 +67,38 @@ const getChapters = async () => {
       // console.log('Getting chapters for book id:', props.id)
 
       textContent1.value = await getEpubChapters(foundBook.value.path)
-      console.log(textContent1.value)
+      // console.log(textContent1.value)
 
-      chapterTitles.value = textContent1.value.map((chapter) => chapter.title)
+      chapterTitles.value = textContent1.value.map((chapter, idx) => {
+        return chapter.title?.replace(/\s+/g, ' ').trim() || `Chapter ${idx + 1}`
+      })
 
-      const savedSession = localStorage.getItem(`typing-session-${props.id}`)
-      let initialChapterIdx = foundBook.value.current_chapter_idx ?? 0
+      console.log(chapterTitles.value)
 
-      if (savedSession) {
-        try {
-          const { chapterIndex: savedChapterIndex } = JSON.parse(savedSession)
-          if (confirm('Continue previous session?')) {
-            initialChapterIdx = savedChapterIndex
-          } else {
-            // User declined, clear localStorage
-            localStorage.removeItem(`typing-session-${props.id}`)
-          }
-        } catch (e) {
-          console.error('Failed to restore session:', e)
-        }
-      }
+      // const savedSession = localStorage.getItem(`typing-session-${props.id}`)
+      // let fetchedChapIdx = props.chapIdx
 
-      // Now set the chapter index (either from localStorage or database)
-      chapterIndex.value = initialChapterIdx
+      // if (savedSession) {
+      //   try {
+      //     const { chapterIndex: savedChapterIndex } = JSON.parse(savedSession)
+      //     if (confirm('Continue previous session?')) {
+      //       fetchedChapIdx = savedChapterIndex
+      //     } else {
+      //       // User declined, clear localStorage
+      //       localStorage.removeItem(`typing-session-${props.id}`)
+      //     }
+      //   } catch (e) {
+      //     console.error('Failed to restore session:', e)
+      //   }
+      // }
 
-      const foundCurrentChapterTitle =
-        chapterTitles.value[chapterIndex.value] || foundBook.value.title
-      chapterTitle.value = foundCurrentChapterTitle
+      // // Get previous chapter index if found
+      // chapterIndex.value = initialChapterIdx
 
-      emit('updateBookInfo', foundBook.value.title, chapterTitle.value)
+      chapterTitle.value = chapterTitles.value[props.chapIdx] || foundBook.value.title
+
+      emit('updateBookInfo', foundBook.value.title, chapterTitles.value, props.chapIdx)
+      console.log('Updating book info: ', chapterTitles.value)
 
       initializeCharMap()
     }
@@ -104,11 +114,16 @@ let last_typed_time = ref(Date.now())
 let timer_running = ref(false)
 let running_time = ref(0) // in seconds
 
-let emit = defineEmits(['current_running_time', 'updateStats', 'updateBookInfo'])
+let emit = defineEmits([
+  'current_running_time',
+  'updateStats',
+  'updateBookInfo',
+  'fetchChapterTitles',
+])
 emit('current_running_time', running_time.value)
 
 function initializeCharMap() {
-  const text = textContent1.value.at(chapterIndex.value)?.content
+  const text = textContent1.value.at(props.chapIdx)?.content
   if (!text) {
     charMap.value = []
     console.error('No text content found')
@@ -123,7 +138,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    // .slice(0, 200)
+    .slice(0, 500)
     .map((char, id) => {
       let textChar = {
         id,
@@ -222,27 +237,27 @@ watch(typed_id, (newId) => {
 let testOngoing = ref<boolean>(false)
 let testIntervalId: ReturnType<typeof setInterval> | null = null
 
-watch(chapterIndex, async () => {
-  resetTypingTest()
+// watch(chapterIndex, async () => {
+//   resetTypingTest()
 
-  if (!foundBook.value) return
+//   if (!foundBook.value) return
 
-  chapterTitle.value = chapterTitles.value[chapterIndex.value] || foundBook.value.title
-  foundBook.value.current_chapter_idx = chapterIndex.value
-  foundBook.value.current_chapter_title = chapterTitle.value
+//   chapterTitle.value = chapterTitles.value[chapterIndex.value] || foundBook.value.title
+//   foundBook.value.current_chapter_idx = chapterIndex.value
+//   foundBook.value.chapter_titles = chapterTitles.value
 
-  console.log('UPDATED CHAP TITLE: ', chapterTitle.value)
-  emit('updateBookInfo', foundBook.value.title, chapterTitle.value)
+//   console.log('UPDATED CHAP TITLEs: ', chapterTitles.value)
+//   emit('updateBookInfo', foundBook.value.title, chapterTitles.value)
 
-  initializeCharMap()
+//   initializeCharMap()
 
-  await nextTick()
+//   await nextTick()
 
-  window.scrollTo({
-    top: 0,
-    behavior: 'auto',
-  })
-})
+//   window.scrollTo({
+//     top: 0,
+//     behavior: 'auto',
+//   })
+// })
 
 watch(testOngoing, (testOngoing) => {
   if (testOngoing) {
@@ -351,11 +366,17 @@ function startTimer() {
     }
 
     if (charMap.value.length === typed_id.value) {
-      alert('Test completed! Press Enter to continue to next chapter.')
+      alert('Test completed!')
       clearInterval(timerIntervalId!)
       timer_running.value = false
       testOngoing.value = false
-      chapterIndex.value++
+
+      let newIdx = props.chapIdx
+      newIdx++
+
+      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value, newIdx)
+
+      // chapterIndex.value++
       return
     }
 
@@ -395,34 +416,28 @@ function resetTypingTest() {
   }
 }
 
-function selectChapter(idx: number) {
-  chapterIndex.value = idx
-  const modal = document.getElementById('chaptermodal') as HTMLDialogElement
-  modal?.close()
-}
+// // Save to localStorage as backup
+// watch(
+//   stats,
+//   (newStats) => {
+//     if (!charMap.value || charMap.value.length === 0) return
 
-// Save to localStorage as backup
-watch(
-  stats,
-  (newStats) => {
-    if (!charMap.value || charMap.value.length === 0) return
-
-    localStorage.setItem(
-      `typing-session-${props.id}`,
-      JSON.stringify({
-        stats: newStats,
-        chapterIndex: chapterIndex.value,
-      }),
-    )
-  },
-  { deep: true },
-)
+//     localStorage.setItem(
+//       `typing-session-${props.id}`,
+//       JSON.stringify({
+//         stats: newStats,
+//         chapterIndex: chapterIndex.value,
+//       }),
+//     )
+//   },
+//   { deep: true },
+// )
 </script>
 
 <template>
   <div>
     <span v-if="loading" class="loading mx-auto my-auto loading-xl loading-spinner"></span>
-
+    <!-- 
     <button
       class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
       onclick="chaptermodal.showModal()"
@@ -439,6 +454,7 @@ watch(
             :key="idx"
             @click="selectChapter(idx)"
           >
+          <button class="btn py-4" v-for="(chapter, idx) in chapterTitles" :key="idx">
             {{ chapter }}
           </button>
         </div>
@@ -446,7 +462,7 @@ watch(
       <form method="dialog" class="modal-backdrop">
         <button>close</button>
       </form>
-    </dialog>
+    </dialog> -->
     <div
       tabindex="0"
       class="h-full w-full cursor-text px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"

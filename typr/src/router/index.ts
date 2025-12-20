@@ -15,9 +15,10 @@ const routes = [
   },
   {
     // lazy loaded route
-    path: '/test',
+    path: '/test/:id',
     name: 'TypingTest',
     component: () => import('../views/TypingTest.vue'),
+    props: true,
   },
   {
     // lazy loaded route
@@ -36,13 +37,6 @@ const routes = [
     path: '/book/:id',
     name: 'Book',
     component: () => import('../views/BookOverview.vue'),
-    props: true,
-  },
-  {
-    // lazy loaded route
-    path: '/text-content/:id',
-    name: 'TextContent',
-    component: () => import('../components/TextContent.vue'),
     props: true,
   },
 ]

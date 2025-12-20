@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Key from './Key.vue'
 
-import { defineProps, ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 
 // Highlight key on press
 
@@ -24,7 +24,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="m-1 flex h-fit w-150 flex-col gap-1.5 rounded-md bg-base-300 p-1.5 text-neutral-content shadow-md"
+    class="sticky bottom-0 m-1 flex h-fit w-150 flex-col gap-1.5 rounded-md bg-base-300 p-1.5 py-4 text-neutral-content shadow-md"
   >
     <div class="flex flex-row gap-1.5">
       <Key char="Esc" id="Escape" />

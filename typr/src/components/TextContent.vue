@@ -1,24 +1,36 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, reactive, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
+import { Chapter } from '../../scripts/getEpubChapters'
 
 const props = defineProps({
-  content: String,
   id: {
     type: String,
     required: true,
   },
+  chapIdx: {
+    type: Number,
+    required: true,
+  },
 })
 
-// console.log(props.id)
+interface TextChar {
+  id: number
+  char: string
+  displayChar: string
+  done: boolean
+  correct: boolean
+}
 
 const foundBook = ref<BookInfo | null>(null)
 const loading = ref<boolean>(true)
 
-const textContent1 = ref<string[]>([])
-const charMap = ref()
+const textContent1 = ref<Chapter[]>([])
+const chapterTitles = ref<string[]>([])
+const charMap = ref<TextChar[]>([])
+const chapterTitle = ref<string>('')
 
 const fetchBook = async () => {
   try {
@@ -33,7 +45,6 @@ const fetchBook = async () => {
     if (error && status !== 406) throw error
     if (data) {
       foundBook.value = data
-      // console.log('Fetched book:', foundBook.value)
       getChapters()
     }
   } catch (error) {
@@ -46,9 +57,36 @@ const fetchBook = async () => {
 const getChapters = async () => {
   try {
     if (foundBook.value) {
-      // console.log('Getting chapters for book id:', props.id)
-
       textContent1.value = await getEpubChapters(foundBook.value.path)
+
+      chapterTitles.value = textContent1.value.map((chapter, idx) => {
+        return chapter.title?.replace(/\s+/g, ' ').trim() || `Chapter ${idx + 1}`
+      })
+
+      // const savedSession = localStorage.getItem(`typing-session-${props.id}`)
+      // let fetchedChapIdx = props.chapIdx
+
+      // if (savedSession) {
+      //   try {
+      //     const { chapterIndex: savedChapterIndex } = JSON.parse(savedSession)
+      //     if (confirm('Continue previous session?')) {
+      //       fetchedChapIdx = savedChapterIndex
+      //     } else {
+      //       // User declined, clear localStorage
+      //       localStorage.removeItem(`typing-session-${props.id}`)
+      //     }
+      //   } catch (e) {
+      //     console.error('Failed to restore session:', e)
+      //   }
+      // }
+
+      // // Get previous chapter index if found
+      // chapterIndex.value = initialChapterIdx
+
+      chapterTitle.value = chapterTitles.value[props.chapIdx] || foundBook.value.title
+
+      emit('updateBookInfo', foundBook.value.title, chapterTitles.value, props.chapIdx)
+
       initializeCharMap()
     }
   } catch (error) {
@@ -57,63 +95,133 @@ const getChapters = async () => {
   }
 }
 
+const keydownHandler = (event: KeyboardEvent) => {
+  if (event.defaultPrevented) {
+    return // Do nothing if the event was already processed
+  }
+  event.preventDefault()
+
+  if (!testOngoing.value) {
+    testOngoing.value = true
+  }
+
+  const current_char = charMap.value.find((x: TextChar) => x.id === typed_id.value)
+  if (!current_char) {
+    return
+  }
+
+  if (event.key === 'Backspace') {
+    if (typed_id.value === 0) return
+    typed_id.value--
+    const previousChar = charMap.value.find((x: TextChar) => x.id === typed_id.value)
+    if (!previousChar) return
+    previousChar.done = false
+    previousChar.correct = false
+
+    if (previousChar.char == '\n') previousChar.displayChar = '\n\n'
+    else previousChar.displayChar = previousChar.char
+
+    return
+  }
+
+  if (event.key === ' ') {
+    totalKeypresses.value++
+    typed_id.value++
+    current_char.done = true
+    current_char.displayChar = ' '
+    if (current_char.char === ' ') {
+      current_char.correct = true
+    } else {
+      current_char.correct = false
+      current_char.displayChar = '_'
+    }
+    return
+  }
+
+  if (event.key.length === 1) {
+    typed_id.value++
+    totalKeypresses.value++
+    current_char.done = true
+  }
+
+  if (event.key === 'Enter') {
+    typed_id.value++
+    totalKeypresses.value++
+    current_char.done = true
+    if (current_char.char === '\n') {
+      current_char.correct = true
+    } else {
+      current_char.correct = false
+    }
+    return
+  }
+
+  if (event.key === current_char.char) {
+    current_char.correct = true
+  } else {
+    current_char.correct = false
+  }
+}
+
 let typed_id = ref(0) // id of the last typed character
+let totalKeypresses = ref<number>(0)
 let last_typed_time = ref(Date.now())
 let timer_running = ref(false)
 let running_time = ref(0) // in seconds
 
-let emit = defineEmits(['current_running_time', 'updateStats'])
+let emit = defineEmits([
+  'current_running_time',
+  'updateStats',
+  'updateBookInfo',
+  'fetchChapterTitles',
+])
 emit('current_running_time', running_time.value)
 
-console.log('Text content1: ', textContent1.value)
-
 function initializeCharMap() {
-  console.log('Fetched text content:', textContent1.value)
+  const text = textContent1.value.at(props.chapIdx)?.content
+  if (!text) {
+    charMap.value = []
+    console.error('No text content found')
+    return
+  }
 
-  console.log('TextContent1: ', textContent1.value)
-  charMap.value =
-    textContent1.value
-      .at(0)
-      ?.split('')
-      .map((char, idx) => {
-        let textChar = {
-          id: idx,
-          char: char,
-          displayChar: char,
-          done: false,
-          correct: false,
-        }
-        return textChar
-      }) ?? []
+  const characters = text
+    .split('')
+    .filter((char) => char !== '\t') // remove tabs
+    .filter((char, idx, arr) => {
+      if (char === '\n' && (arr[idx - 1] === '\n' || idx == 0)) {
+        return false // remove consecutive newlines
+      } else return true
+    })
+    .slice(0, 500)
+    .map((char, id) => {
+      let textChar = {
+        id,
+        char,
+        displayChar: char,
+        done: false,
+        correct: false,
+      }
+      if (char === '\n') {
+        textChar.displayChar = '\n\n'
+      }
+      return textChar
+    })
 
-  console.log('Character map:', charMap.value)
+  charMap.value = characters
 }
 
-// const charMap = ref(
-//   textContent1.value
-//     .at(0)
-//     ?.split('')
-//     .map((char, idx) => {
-//       let textChar = {
-//         id: idx,
-//         char: char,
-//         displayChar: char,
-//         done: false,
-//         correct: false,
-//       }
-//       return textChar
-//     }) ?? [],
-// )
-
-var stats = computed(() => {
+let stats = computed(() => {
   const minutes = running_time.value / 60
-  const typedChars = charMap.value.filter((c) => c.done).length
-  const incorrectChars = charMap.value.filter((c) => c.done && !c.correct).length
+  const typedChars = totalKeypresses.value
 
-  const grossWPM = typed_id.value / 5
-  const netWPM = minutes > 0 ? (grossWPM - incorrectChars) / minutes : 0
+  const incorrectChars = charMap.value.filter((c: TextChar) => c.done && !c.correct).length
 
-  const correctChars = charMap.value.filter((c) => c.done && c.correct).length
+  const grossNumerator = typedChars / 5
+  const grossWPM = minutes > 0 ? grossNumerator / minutes : 0
+  const netWPM = minutes > 0 ? (grossNumerator - incorrectChars) / minutes : 0
+
+  const correctChars = charMap.value.filter((c: TextChar) => c.done && c.correct).length
   const accuracy = Math.round((correctChars / typedChars) * 100) || 0
 
   return {
@@ -130,8 +238,6 @@ var stats = computed(() => {
 const caret = ref<HTMLElement | null>(null)
 
 watch(typed_id, (newId) => {
-  emit('updateStats', stats.value)
-
   // start test timer
   last_typed_time.value = Date.now()
 
@@ -146,142 +252,186 @@ watch(typed_id, (newId) => {
 
   if (!currentCharSpan || !textContent || !container) return
 
-  var containerPos = container.getBoundingClientRect()
-  var textContentPos = textContent.getBoundingClientRect()
-  var currentCharPos = currentCharSpan.getBoundingClientRect()
+  let containerPos = container.getBoundingClientRect()
+  let textContentPos = textContent.getBoundingClientRect()
+  let currentCharPos = currentCharSpan.getBoundingClientRect()
 
   const containerCenter = containerPos.top + containerPos.height / 2
 
   if (caret.value) {
-    if (currentCharPos.top > containerCenter) {
-      currentCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const viewportHeight = window.innerHeight
+
+    // scroll when caret goes below 65% of viewport
+    if (currentCharPos.top > viewportHeight * 0.65) {
+      currentCharSpan.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }
+
+    if (currentCharPos.top < window.innerHeight * 0.25) {
+      currentCharSpan.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
     }
 
     caret.value.style.top = `${currentCharSpan.offsetTop - 5}px`
-    // console.log('New ID: ' + newId, ' Current Char: ' + currentCharSpan.innerText)
-
-    // console.log('chacrater at last: ', charMap.value[newId])
 
     caret.value.style.left = `${currentCharSpan.offsetLeft - 10}px`
+  }
+})
+let testOngoing = ref<boolean>(false)
+let testIntervalId: ReturnType<typeof setInterval> | null = null
 
-    // console.log(currentCharSpan)
+watch(testOngoing, (testOngoing) => {
+  if (testOngoing) {
+    testIntervalId = setInterval(() => emit('updateStats', stats.value), 1000)
+  } else if (testIntervalId !== null && !testOngoing) {
+    clearInterval(testIntervalId)
+    testIntervalId = null
+    nextTick(() => {
+      typingRoot.value?.focus() // Refocus after reset
+    })
   }
 })
 
 onMounted(() => {
   fetchBook()
+  window.addEventListener('keydown', keydownHandler, true)
 })
 
-window.addEventListener('keydown', (event) => {
-  if (event.defaultPrevented) {
-    return // Do nothing if the event was already processed
-  }
-
-  event.preventDefault()
-  // console.log('Typed id: ' + typed_id.value)
-
-  // console.log('Key pressed: ' + event.key)
-
-  const current_char = charMap.value.find((x) => x.id === typed_id.value)
-  if (!current_char) return
-
-  if (event.key === 'Backspace') {
-    if (typed_id.value === 0) return
-    typed_id.value--
-    const previousChar = charMap.value.find((x) => x.id === typed_id.value)
-    if (!previousChar) return
-    previousChar.done = false
-    previousChar.displayChar = previousChar.char
-    previousChar.correct = false
-    return
-  }
-
-  if (event.key === ' ') {
-    typed_id.value++
-    current_char.done = true
-    current_char.displayChar = ' '
-    if (current_char.char === ' ') {
-      current_char.correct = true
-    } else {
-      current_char.correct = false
-      current_char.displayChar = '_'
-    }
-    return
-  }
-
-  if (event.key.length === 1) {
-    typed_id.value++
-    current_char.done = true
-
-    current_char.displayChar = event.key
-  }
-  if (event.key === current_char.char) {
-    current_char.correct = true
-  } else {
-    current_char.correct = false
-  }
-})
+let timerIntervalId: ReturnType<typeof setInterval> | null = null
 
 function startTimer() {
-  var start = Date.now()
+  if (timerIntervalId !== null) clearInterval(timerIntervalId)
+
+  let start = Date.now()
   timer_running.value = true
-  console.log('Timer started')
 
   if (running_time.value > 0) {
     start = start - running_time.value * 1000 // continue from previous time (deducted 5s of inactivity)
   }
 
-  var intervalId = setInterval(() => {
+  timerIntervalId = setInterval(() => {
     // stop timer when no presses detected for 5 seconds
     if (Date.now() - last_typed_time.value > 5000) {
-      alert('Timer stopped')
-      clearInterval(intervalId)
-
-      running_time.value -= 5 // deduct 5s of inactivity + end of current second
+      // alert('Timer stopped')
+      clearInterval(timerIntervalId!)
+      testOngoing.value = false
+      running_time.value = Math.max(0, running_time.value - 5) // deduct 5s of inactivity + end of current second
       timer_running.value = false
 
       emit('current_running_time', running_time.value)
       return
     }
 
-    if (textContent1?.value.length === typed_id.value) {
+    if (charMap.value.length === typed_id.value) {
       alert('Test completed!')
-      clearInterval(intervalId)
+      clearInterval(timerIntervalId!)
       timer_running.value = false
+      testOngoing.value = false
+
+      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value)
+
       return
     }
 
-    var delta = Date.now() - start
-    // console.log('Timer: ' + Math.floor(delta / 1000) + 's')
+    const delta = Date.now() - start
     running_time.value = Math.floor(delta / 1000)
     emit('current_running_time', running_time.value)
   }, 200)
 }
+
+function stopTimer() {
+  if (timerIntervalId !== null) {
+    clearInterval(timerIntervalId)
+    timerIntervalId = null
+  }
+  timer_running.value = false
+}
+
+onUnmounted(() => {
+  stopTimer()
+  if (testIntervalId !== null) {
+    clearInterval(testIntervalId)
+  }
+  window.removeEventListener('keydown', keydownHandler, true)
+})
+
+function resetTypingTest() {
+  stopTimer()
+  typed_id.value = 0
+  totalKeypresses.value = 0
+  running_time.value = 0
+  last_typed_time.value = Date.now()
+  if (charMap.value) {
+    charMap.value.forEach((char: TextChar) => {
+      char.done = false
+      char.correct = false
+      char.displayChar = char.char === '\n' ? '\n\n' : char.char
+    })
+  }
+}
+
+const typingRoot = ref<HTMLElement | null>(null)
+
+function focus() {
+  typingRoot.value?.focus()
+}
+
+defineExpose({ focus })
+watch(
+  () => props.chapIdx,
+  async () => {
+    testOngoing.value = false
+    initializeCharMap()
+    resetTypingTest()
+
+    await nextTick()
+    const firstChar = document.getElementById('char-0')
+    if (firstChar && caret.value) {
+      firstChar.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      caret.value.style.top = `${firstChar.offsetTop - 5}px`
+      caret.value.style.left = `${firstChar.offsetLeft - 10}px`
+    }
+  },
+)
+
+const handleClick = () => {
+  typingRoot.value?.focus()
+}
 </script>
 
 <template>
-  <div
-    tabindex="0"
-    class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
-  >
-    <!-- chapter size:{{ textContent1.length }} -->
-
-    <!-- <p v-for="chapter in textContent1" style="white-space: pre-wrap">{{ chapter }}</p> -->
-
-    <div id="text-content" class="relative">
-      <span class="absolute animate-pulse text-5xl font-semibold text-primary" ref="caret">|</span>
-      <span
-        class="whitespace-pre-wrap"
-        :class="{
-          correct: char.correct,
-          incorrect: char.done && !char.correct,
-          'text-ghost': !char.done,
-        }"
-        :id="'char-' + char.id"
-        v-for="char in charMap"
-        :key="char.id"
-        >{{ char.displayChar }}</span
-      >
+  <div>
+    <span v-if="loading" class="loading mx-auto my-auto loading-xl loading-spinner"></span>
+    <div
+      ref="typingRoot"
+      @click="handleClick"
+      tabindex="0"
+      class="h-full w-full cursor-text px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
+    >
+      <div id="text-content" class="relative">
+        <span
+          v-if="!loading"
+          class="absolute animate-pulse text-5xl font-semibold text-primary"
+          ref="caret"
+          >|</span
+        >
+        <span
+          class="whitespace-pre-wrap"
+          :class="{
+            correct: char.correct,
+            incorrect: char.done && !char.correct,
+            'text-ghost': !char.done,
+          }"
+          :id="'char-' + char.id"
+          v-for="char in charMap"
+          :key="char.id"
+          >{{ char.displayChar }}</span
+        >
+      </div>
     </div>
   </div>
 </template>

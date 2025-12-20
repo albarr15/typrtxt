@@ -33,18 +33,7 @@ function toggleTheme() {
     <div class="navbar-center hidden lg:flex">
       <ul class="menu menu-horizontal gap-4 px-1">
         <li><router-link to="/">Home</router-link></li>
-        <li>
-          <details>
-            <summary><router-link to="/lib">Library</router-link></summary>
-            <ul class="rounded-md bg-base-300 p-2 shadow-md">
-              <li><router-link to="/test">Typing Test</router-link></li>
-              <!-- temp link -->
-              <li><router-link to="/stats">Stats</router-link></li>
-              <!-- temp link -->
-            </ul>
-          </details>
-        </li>
-        <li><router-link to="/settings">Settings</router-link></li>
+        <li><router-link to="/lib">Library</router-link></li>
       </ul>
     </div>
     <div class="navbar-end">
@@ -102,16 +91,7 @@ function toggleTheme() {
           class="dropdown-content menu z-1 mt-3 w-52 menu-md rounded-md bg-base-300 p-2 shadow-md"
         >
           <li><router-link to="/">Home</router-link></li>
-          <li>
-            <router-link to="/lib">Library</router-link>
-            <ul class="p-2">
-              <li><router-link to="/test">Typing Test</router-link></li>
-              <!-- temp link -->
-              <li><router-link to="/stats">Stats</router-link></li>
-              <!-- temp link -->
-            </ul>
-          </li>
-          <li><router-link to="/settings">Settings</router-link></li>
+          <li><router-link to="/lib">Library</router-link></li>
         </ul>
       </div>
     </div>

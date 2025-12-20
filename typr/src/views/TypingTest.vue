@@ -51,11 +51,27 @@ function updateBookInfo(title: string, chapter: string) {
   <div
     class="my-auto flex h-fit max-h-4/5 min-h-150 w-2/3 max-w-7xl flex-col items-center justify-center gap-4"
   >
+    <div class="sticky top-24 z-10">
+      <div
+        class="flex items-center justify-between gap-4 rounded-xl bg-base-200 p-2 text-xs text-base-content/70 shadow-md"
+      >
+        <div>{{ displayTime }}</div>
+        <div class="flex flex-col items-center justify-center">
+          <div>{{ bookTitle }}</div>
+          <div class="font-bold">{{ bookChapter }}</div>
+        </div>
+        <div class="flex items-center justify-center gap-5">
+          <div class="font-bold">{{ wpm }}</div>
+          <div class="font-bold">{{ accuracy }}%</div>
+        </div>
+      </div>
+    </div>
+
     <!-- main content -->
     <div class="flex h-4/5 w-full flex-col rounded-xl bg-base-200 px-6 shadow-md">
       <!-- book info -->
-      <div
-        class="m-4 flex h-1/12 items-center justify-between rounded-xl p-2 text-xs text-base-content/70"
+      <!-- <div
+        class="sticky top-0 z-10 m-4 flex h-1/12 items-center justify-between rounded-xl p-2 text-xs text-base-content/70"
       >
         <div>{{ displayTime }}</div>
         <div class="flex flex-col items-center justify-center">
@@ -67,7 +83,7 @@ function updateBookInfo(title: string, chapter: string) {
           <div class="font-bold">{{ wpm }}</div>
           <div class="font-bold">{{ accuracy }}%</div>
         </div>
-      </div>
+      </div> -->
       <!-- text content -->
       <TextContent
         :id="props.id"

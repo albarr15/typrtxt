@@ -123,7 +123,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    .slice(0, 50) //TEMP: limit first 300 characters
+    .slice(0, 500) //TEMP: limit first 300 characters
     .map((char, id) => {
       let textChar = {
         id,
@@ -400,7 +400,7 @@ watch(
   <div>
     <span v-if="loading" class="loading mx-auto my-auto loading-xl loading-spinner"></span>
 
-    <button class="btn" onclick="chaptermodal.showModal()">open modal</button>
+    <button class="btn h-8 btn-ghost" onclick="chaptermodal.showModal()">Change Chapter?</button>
     <dialog id="chaptermodal" class="modal">
       <div class="modal-box">
         <h3 class="text-lg font-bold">Select Chapter</h3>
@@ -421,7 +421,7 @@ watch(
     </dialog>
     <div
       tabindex="0"
-      class="h-full w-full cursor-text overflow-y-auto px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
+      class="h-screen w-full cursor-text overflow-hidden px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
     >
       <div id="text-content" class="relative">
         <span

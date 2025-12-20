@@ -123,7 +123,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    .slice(0, 200) //TEMP: limit first 300 characters
+    // .slice(0, 200)
     .map((char, id) => {
       let textChar = {
         id,
@@ -192,8 +192,21 @@ watch(typed_id, (newId) => {
   const containerCenter = containerPos.top + containerPos.height / 2
 
   if (caret.value) {
-    if (currentCharPos.top > containerCenter) {
-      currentCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const viewportHeight = window.innerHeight
+
+    // scroll when caret goes below 65% of viewport
+    if (currentCharPos.top > viewportHeight * 0.65) {
+      currentCharSpan.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }
+
+    if (currentCharPos.top < window.innerHeight * 0.25) {
+      currentCharSpan.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
     }
 
     caret.value.style.top = `${currentCharSpan.offsetTop - 5}px`
@@ -436,7 +449,7 @@ watch(
     </dialog>
     <div
       tabindex="0"
-      class="h-full w-full cursor-text overflow-hidden px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
+      class="h-full w-full cursor-text px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
     >
       <div id="text-content" class="relative">
         <span

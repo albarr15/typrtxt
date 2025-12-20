@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
@@ -123,7 +123,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    .slice(0, 500) //TEMP: limit first 300 characters
+    .slice(0, 200) //TEMP: limit first 300 characters
     .map((char, id) => {
       let textChar = {
         id,
@@ -209,7 +209,9 @@ watch(typed_id, (newId) => {
 let testOngoing = ref<boolean>(false)
 let testIntervalId: ReturnType<typeof setInterval> | null = null
 
-watch(chapterIndex, () => {
+watch(chapterIndex, async () => {
+  resetTypingTest()
+
   if (!foundBook.value) return
 
   chapterTitle.value = chapterTitles.value[chapterIndex.value] || foundBook.value.title
@@ -220,6 +222,13 @@ watch(chapterIndex, () => {
   emit('updateBookInfo', foundBook.value.title, chapterTitle.value)
 
   initializeCharMap()
+
+  await nextTick()
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'auto',
+  })
 })
 
 watch(testOngoing, (testOngoing) => {
@@ -359,6 +368,7 @@ onUnmounted(() => {
 })
 
 function resetTypingTest() {
+  stopTimer()
   typed_id.value = 0
   totalKeypresses.value = 0
   running_time.value = 0
@@ -400,7 +410,12 @@ watch(
   <div>
     <span v-if="loading" class="loading mx-auto my-auto loading-xl loading-spinner"></span>
 
-    <button class="btn h-8 btn-ghost" onclick="chaptermodal.showModal()">Change Chapter?</button>
+    <button
+      class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
+      onclick="chaptermodal.showModal()"
+    >
+      Change Chapter?
+    </button>
     <dialog id="chaptermodal" class="modal">
       <div class="modal-box">
         <h3 class="text-lg font-bold">Select Chapter</h3>
@@ -421,7 +436,7 @@ watch(
     </dialog>
     <div
       tabindex="0"
-      class="h-screen w-full cursor-text overflow-hidden px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
+      class="h-full w-full cursor-text overflow-hidden px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
     >
       <div id="text-content" class="relative">
         <span

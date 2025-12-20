@@ -13,6 +13,7 @@ export async function getEpubChapters(epubPath: string | ArrayBuffer): Promise<C
   const ignoredSections = new Set<string>([
     'text/titlepage.xhtml',
     'text/imprint.xhtml',
+    'text/epigraph.xhtml',
     'text/dedication.xhtml',
     'text/preface.xhtml',
     'text/halftitlepage.xhtml',

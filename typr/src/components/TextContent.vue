@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
@@ -27,7 +27,7 @@ const loading = ref<boolean>(true)
 
 const textContent1 = ref<Chapter[]>([])
 const chapterTitles = ref<string[]>([])
-const charMap = ref()
+const charMap = ref<TextChar[]>([])
 const chapterIndex = ref<number>(0)
 const chapterTitle = ref<string>('')
 
@@ -64,9 +64,25 @@ const getChapters = async () => {
 
       chapterTitles.value = textContent1.value.map((chapter) => chapter.title)
 
-      // Set current chapter index/title
-      const foundCurrentChapterIdx = foundBook.value.current_chapter_idx ?? 0
-      chapterIndex.value = foundCurrentChapterIdx
+      const savedSession = localStorage.getItem(`typing-session-${props.id}`)
+      let initialChapterIdx = foundBook.value.current_chapter_idx ?? 0
+
+      if (savedSession) {
+        try {
+          const { chapterIndex: savedChapterIndex } = JSON.parse(savedSession)
+          if (confirm('Continue previous session?')) {
+            initialChapterIdx = savedChapterIndex
+          } else {
+            // User declined, clear localStorage
+            localStorage.removeItem(`typing-session-${props.id}`)
+          }
+        } catch (e) {
+          console.error('Failed to restore session:', e)
+        }
+      }
+
+      // Now set the chapter index (either from localStorage or database)
+      chapterIndex.value = initialChapterIdx
 
       const foundCurrentChapterTitle =
         chapterTitles.value[chapterIndex.value] || foundBook.value.title
@@ -127,7 +143,7 @@ function initializeCharMap() {
   // console.log('Char map:', charMap.value)
 }
 
-var stats = computed(() => {
+let stats = computed(() => {
   const minutes = running_time.value / 60
   // const typedChars = charMap.value.filter((c: TextChar) => c.done).length
   const typedChars = totalKeypresses.value
@@ -169,9 +185,9 @@ watch(typed_id, (newId) => {
 
   if (!currentCharSpan || !textContent || !container) return
 
-  var containerPos = container.getBoundingClientRect()
-  var textContentPos = textContent.getBoundingClientRect()
-  var currentCharPos = currentCharSpan.getBoundingClientRect()
+  let containerPos = container.getBoundingClientRect()
+  let textContentPos = textContent.getBoundingClientRect()
+  let currentCharPos = currentCharSpan.getBoundingClientRect()
 
   const containerCenter = containerPos.top + containerPos.height / 2
 
@@ -224,7 +240,6 @@ window.addEventListener('keydown', (event) => {
   if (event.defaultPrevented) {
     return // Do nothing if the event was already processed
   }
-
   event.preventDefault()
 
   if (!testOngoing.value) {
@@ -287,8 +302,12 @@ window.addEventListener('keydown', (event) => {
   }
 })
 
+let timerIntervalId: ReturnType<typeof setInterval> | null = null
+
 function startTimer() {
-  var start = Date.now()
+  if (timerIntervalId !== null) clearInterval(timerIntervalId)
+
+  let start = Date.now()
   timer_running.value = true
   console.log('Timer started')
 
@@ -296,33 +315,48 @@ function startTimer() {
     start = start - running_time.value * 1000 // continue from previous time (deducted 5s of inactivity)
   }
 
-  var intervalId = setInterval(() => {
+  timerIntervalId = setInterval(() => {
     // stop timer when no presses detected for 5 seconds
     if (Date.now() - last_typed_time.value > 5000) {
       alert('Timer stopped')
-      clearInterval(intervalId)
+      clearInterval(timerIntervalId!)
 
-      running_time.value -= 5 // deduct 5s of inactivity + end of current second
+      running_time.value = Math.max(0, running_time.value - 5) // deduct 5s of inactivity + end of current second
       timer_running.value = false
 
       emit('current_running_time', running_time.value)
       return
     }
 
-    if (charMap?.value.length === typed_id.value) {
+    if (charMap.value.length === typed_id.value) {
       alert('Test completed! Press Enter to continue to next chapter.')
-      clearInterval(intervalId)
+      clearInterval(timerIntervalId!)
       timer_running.value = false
       testOngoing.value = false
       chapterIndex.value++
       return
     }
 
-    var delta = Date.now() - start
+    const delta = Date.now() - start
     running_time.value = Math.floor(delta / 1000)
     emit('current_running_time', running_time.value)
   }, 200)
 }
+
+function stopTimer() {
+  if (timerIntervalId !== null) {
+    clearInterval(timerIntervalId)
+    timerIntervalId = null
+  }
+  timer_running.value = false
+}
+
+onUnmounted(() => {
+  stopTimer()
+  if (testIntervalId !== null) {
+    clearInterval(testIntervalId)
+  }
+})
 
 function resetTypingTest() {
   typed_id.value = 0
@@ -344,7 +378,22 @@ function selectChapter(idx: number) {
   modal?.close()
 }
 
-const showChapterModal = ref<Boolean>(false)
+// Save to localStorage as backup
+watch(
+  stats,
+  (newStats) => {
+    if (!charMap.value || charMap.value.length === 0) return
+
+    localStorage.setItem(
+      `typing-session-${props.id}`,
+      JSON.stringify({
+        stats: newStats,
+        chapterIndex: chapterIndex.value,
+      }),
+    )
+  },
+  { deep: true },
+)
 </script>
 
 <template>

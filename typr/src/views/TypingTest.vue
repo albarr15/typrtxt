@@ -87,7 +87,6 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
     <div class="flex h-4/5 w-full flex-col rounded-xl bg-base-200 px-6 py-4 shadow-md">
       <!-- text content -->
       <TextContent
-        :key="`${props.id}-${bookChapterIdx}`"
         :id="props.id"
         :chapIdx="bookChapterIdx"
         @current_running_time="updateTimer"

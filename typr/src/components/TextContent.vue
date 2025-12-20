@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
@@ -92,6 +92,74 @@ const getChapters = async () => {
   } catch (error) {
     console.error('Error fetching chapters:', error)
     alert('Error fetching chapters')
+  }
+}
+
+const keydownHandler = (event: KeyboardEvent) => {
+  if (event.defaultPrevented) {
+    return // Do nothing if the event was already processed
+  }
+  event.preventDefault()
+
+  if (!testOngoing.value) {
+    testOngoing.value = true
+  }
+
+  const current_char = charMap.value.find((x: TextChar) => x.id === typed_id.value)
+  if (!current_char) {
+    return
+  }
+
+  if (event.key === 'Backspace') {
+    if (typed_id.value === 0) return
+    typed_id.value--
+    const previousChar = charMap.value.find((x: TextChar) => x.id === typed_id.value)
+    if (!previousChar) return
+    previousChar.done = false
+    previousChar.correct = false
+
+    if (previousChar.char == '\n') previousChar.displayChar = '\n\n'
+    else previousChar.displayChar = previousChar.char
+
+    return
+  }
+
+  if (event.key === ' ') {
+    totalKeypresses.value++
+    typed_id.value++
+    current_char.done = true
+    current_char.displayChar = ' '
+    if (current_char.char === ' ') {
+      current_char.correct = true
+    } else {
+      current_char.correct = false
+      current_char.displayChar = '_'
+    }
+    return
+  }
+
+  if (event.key.length === 1) {
+    typed_id.value++
+    totalKeypresses.value++
+    current_char.done = true
+  }
+
+  if (event.key === 'Enter') {
+    typed_id.value++
+    totalKeypresses.value++
+    current_char.done = true
+    if (current_char.char === '\n') {
+      current_char.correct = true
+    } else {
+      current_char.correct = false
+    }
+    return
+  }
+
+  if (event.key === current_char.char) {
+    current_char.correct = true
+  } else {
+    current_char.correct = false
   }
 }
 
@@ -222,78 +290,15 @@ watch(testOngoing, (testOngoing) => {
   } else if (testIntervalId !== null && !testOngoing) {
     clearInterval(testIntervalId)
     testIntervalId = null
-    resetTypingTest()
+    nextTick(() => {
+      typingRoot.value?.focus() // Refocus after reset
+    })
   }
 })
 
 onMounted(() => {
   fetchBook()
-})
-
-window.addEventListener('keydown', (event) => {
-  if (event.defaultPrevented) {
-    return // Do nothing if the event was already processed
-  }
-  event.preventDefault()
-
-  if (!testOngoing.value) {
-    testOngoing.value = true
-  }
-
-  const current_char = charMap.value.find((x: TextChar) => x.id === typed_id.value)
-  if (!current_char) return
-
-  if (event.key === 'Backspace') {
-    if (typed_id.value === 0) return
-    typed_id.value--
-    const previousChar = charMap.value.find((x: TextChar) => x.id === typed_id.value)
-    if (!previousChar) return
-    previousChar.done = false
-    previousChar.correct = false
-
-    if (previousChar.char == '\n') previousChar.displayChar = '\n\n'
-    else previousChar.displayChar = previousChar.char
-
-    return
-  }
-
-  if (event.key === ' ') {
-    totalKeypresses.value++
-    typed_id.value++
-    current_char.done = true
-    current_char.displayChar = ' '
-    if (current_char.char === ' ') {
-      current_char.correct = true
-    } else {
-      current_char.correct = false
-      current_char.displayChar = '_'
-    }
-    return
-  }
-
-  if (event.key.length === 1) {
-    typed_id.value++
-    totalKeypresses.value++
-    current_char.done = true
-  }
-
-  if (event.key === 'Enter') {
-    typed_id.value++
-    totalKeypresses.value++
-    current_char.done = true
-    if (current_char.char === '\n') {
-      current_char.correct = true
-    } else {
-      current_char.correct = false
-    }
-    return
-  }
-
-  if (event.key === current_char.char) {
-    current_char.correct = true
-  } else {
-    current_char.correct = false
-  }
+  window.addEventListener('keydown', keydownHandler, true)
 })
 
 let timerIntervalId: ReturnType<typeof setInterval> | null = null
@@ -311,9 +316,9 @@ function startTimer() {
   timerIntervalId = setInterval(() => {
     // stop timer when no presses detected for 5 seconds
     if (Date.now() - last_typed_time.value > 5000) {
-      alert('Timer stopped')
+      // alert('Timer stopped')
       clearInterval(timerIntervalId!)
-
+      testOngoing.value = false
       running_time.value = Math.max(0, running_time.value - 5) // deduct 5s of inactivity + end of current second
       timer_running.value = false
 
@@ -327,12 +332,8 @@ function startTimer() {
       timer_running.value = false
       testOngoing.value = false
 
-      let newIdx = props.chapIdx
-      newIdx++
+      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value)
 
-      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value, newIdx)
-
-      // chapterIndex.value++
       return
     }
 
@@ -355,6 +356,7 @@ onUnmounted(() => {
   if (testIntervalId !== null) {
     clearInterval(testIntervalId)
   }
+  window.removeEventListener('keydown', keydownHandler, true)
 })
 
 function resetTypingTest() {
@@ -372,54 +374,41 @@ function resetTypingTest() {
   }
 }
 
-// // Save to localStorage as backup
-// watch(
-//   stats,
-//   (newStats) => {
-//     if (!charMap.value || charMap.value.length === 0) return
+const typingRoot = ref<HTMLElement | null>(null)
 
-//     localStorage.setItem(
-//       `typing-session-${props.id}`,
-//       JSON.stringify({
-//         stats: newStats,
-//         chapterIndex: chapterIndex.value,
-//       }),
-//     )
-//   },
-//   { deep: true },
-// )
+function focus() {
+  typingRoot.value?.focus()
+}
+
+defineExpose({ focus })
+watch(
+  () => props.chapIdx,
+  async () => {
+    testOngoing.value = false
+    initializeCharMap()
+    resetTypingTest()
+
+    await nextTick()
+    const firstChar = document.getElementById('char-0')
+    if (firstChar && caret.value) {
+      firstChar.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      caret.value.style.top = `${firstChar.offsetTop - 5}px`
+      caret.value.style.left = `${firstChar.offsetLeft - 10}px`
+    }
+  },
+)
+
+const handleClick = () => {
+  typingRoot.value?.focus()
+}
 </script>
 
 <template>
   <div>
     <span v-if="loading" class="loading mx-auto my-auto loading-xl loading-spinner"></span>
-    <!-- 
-    <button
-      class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
-      onclick="chaptermodal.showModal()"
-    >
-      Change Chapter?
-    </button>
-    <dialog id="chaptermodal" class="modal">
-      <div class="modal-box">
-        <h3 class="text-lg font-bold">Select Chapter</h3>
-        <div class="flex flex-col items-center">
-          <button
-            class="btn py-4"
-            v-for="(chapter, idx) in chapterTitles"
-            :key="idx"
-            @click="selectChapter(idx)"
-          >
-          <button class="btn py-4" v-for="(chapter, idx) in chapterTitles" :key="idx">
-            {{ chapter }}
-          </button>
-        </div>
-      </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-      </form>
-    </dialog> -->
     <div
+      ref="typingRoot"
+      @click="handleClick"
       tabindex="0"
       class="h-full w-full cursor-text px-6 font-mono text-4xl/12 font-medium text-clip text-base-content/60 select-none focus:outline-hidden"
     >

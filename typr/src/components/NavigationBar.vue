@@ -34,7 +34,6 @@ function toggleTheme() {
       <ul class="menu menu-horizontal gap-4 px-1">
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/lib">Library</router-link></li>
-        <li><router-link to="/test">Typing Test</router-link></li>
       </ul>
     </div>
     <div class="navbar-end">
@@ -93,7 +92,6 @@ function toggleTheme() {
         >
           <li><router-link to="/">Home</router-link></li>
           <li><router-link to="/lib">Library</router-link></li>
-          <li><router-link to="/test">Typing Test</router-link></li>
         </ul>
       </div>
     </div>

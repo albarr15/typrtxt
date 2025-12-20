@@ -3,8 +3,7 @@ import { onMounted, watch, ref } from 'vue'
 
 import Keyboard from '../components/Keyboard.vue'
 import TextContent from '../components/TextContent.vue'
-import { BookInfo } from '../types/book'
-import ChapterModal from '../components/ChapterModal.vue'
+
 const props = defineProps({
   id: {
     type: String,
@@ -54,24 +53,8 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
   bookTitle.value = title
   bookChapterTitles.value = chapters
   bookChapterIdx.value = chapterIdx
-  // console.log(bookChapterIdx.value)
   console.log(bookChapterTitles.value)
 }
-
-// // Save to localStorage as backup
-watch(
-  stats,
-  (newStats) => {
-    localStorage.setItem(
-      `typing-session-${props.id}`,
-      JSON.stringify({
-        stats: newStats,
-        chapterIndex: bookChapterIdx.value,
-      }),
-    )
-  },
-  { deep: true },
-)
 </script>
 
 <template>
@@ -82,6 +65,7 @@ watch(
       <div
         class="flex items-center justify-between gap-4 rounded-xl bg-base-200 p-2 text-xs text-base-content/70 shadow-md"
       >
+        <!-- book info -->
         <div>{{ displayTime }}</div>
         <div class="flex flex-col items-center justify-center">
           <div>{{ bookTitle }}</div>
@@ -101,21 +85,6 @@ watch(
     </button>
     <!-- main content -->
     <div class="flex h-4/5 w-full flex-col rounded-xl bg-base-200 px-6 py-4 shadow-md">
-      <!-- book info -->
-      <!-- <div
-        class="sticky top-0 z-10 m-4 flex h-1/12 items-center justify-between rounded-xl p-2 text-xs text-base-content/70"
-      >
-        <div>{{ displayTime }}</div>
-        <div class="flex flex-col items-center justify-center">
-          <div>{{ bookTitle }}</div>
-          <div class="font-bold">{{ bookChapter }}</div>
-        </div>
-
-        <div class="flex items-center justify-center gap-5">
-          <div class="font-bold">{{ wpm }}</div>
-          <div class="font-bold">{{ accuracy }}%</div>
-        </div>
-      </div> -->
       <!-- text content -->
       <TextContent
         :key="`${props.id}-${bookChapterIdx}`"
@@ -147,8 +116,6 @@ watch(
         <button>close</button>
       </form>
     </dialog>
-
-    <!-- <ChapterModal :chapterTitles="bookChapterTitles" /> -->
   </div>
 </template>
 

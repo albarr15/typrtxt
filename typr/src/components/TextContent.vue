@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { BookInfo } from '../types/book'
 import { getEpubChapters } from '../../scripts/getEpubChapters'
@@ -16,10 +16,6 @@ const props = defineProps({
   },
 })
 
-// let chapterIndex = ref<number>(0)
-
-console.log('chapIdx: ', props.chapIdx)
-
 interface TextChar {
   id: number
   char: string
@@ -27,8 +23,6 @@ interface TextChar {
   done: boolean
   correct: boolean
 }
-
-// console.log(props.id)
 
 const foundBook = ref<BookInfo | null>(null)
 const loading = ref<boolean>(true)
@@ -51,7 +45,6 @@ const fetchBook = async () => {
     if (error && status !== 406) throw error
     if (data) {
       foundBook.value = data
-      // console.log('Fetched book:', foundBook.value)
       getChapters()
     }
   } catch (error) {
@@ -64,16 +57,11 @@ const fetchBook = async () => {
 const getChapters = async () => {
   try {
     if (foundBook.value) {
-      // console.log('Getting chapters for book id:', props.id)
-
       textContent1.value = await getEpubChapters(foundBook.value.path)
-      // console.log(textContent1.value)
 
       chapterTitles.value = textContent1.value.map((chapter, idx) => {
         return chapter.title?.replace(/\s+/g, ' ').trim() || `Chapter ${idx + 1}`
       })
-
-      console.log(chapterTitles.value)
 
       // const savedSession = localStorage.getItem(`typing-session-${props.id}`)
       // let fetchedChapIdx = props.chapIdx
@@ -98,7 +86,6 @@ const getChapters = async () => {
       chapterTitle.value = chapterTitles.value[props.chapIdx] || foundBook.value.title
 
       emit('updateBookInfo', foundBook.value.title, chapterTitles.value, props.chapIdx)
-      console.log('Updating book info: ', chapterTitles.value)
 
       initializeCharMap()
     }
@@ -154,13 +141,10 @@ function initializeCharMap() {
     })
 
   charMap.value = characters
-
-  // console.log('Char map:', charMap.value)
 }
 
 let stats = computed(() => {
   const minutes = running_time.value / 60
-  // const typedChars = charMap.value.filter((c: TextChar) => c.done).length
   const typedChars = totalKeypresses.value
 
   const incorrectChars = charMap.value.filter((c: TextChar) => c.done && !c.correct).length
@@ -225,39 +209,12 @@ watch(typed_id, (newId) => {
     }
 
     caret.value.style.top = `${currentCharSpan.offsetTop - 5}px`
-    // console.log('New ID: ' + newId, ' Current Char: ' + currentCharSpan.innerText)
-
-    // console.log('chacrater at last: ', charMap.value[newId])
 
     caret.value.style.left = `${currentCharSpan.offsetLeft - 10}px`
-
-    // console.log(currentCharSpan)
   }
 })
 let testOngoing = ref<boolean>(false)
 let testIntervalId: ReturnType<typeof setInterval> | null = null
-
-// watch(chapterIndex, async () => {
-//   resetTypingTest()
-
-//   if (!foundBook.value) return
-
-//   chapterTitle.value = chapterTitles.value[chapterIndex.value] || foundBook.value.title
-//   foundBook.value.current_chapter_idx = chapterIndex.value
-//   foundBook.value.chapter_titles = chapterTitles.value
-
-//   console.log('UPDATED CHAP TITLEs: ', chapterTitles.value)
-//   emit('updateBookInfo', foundBook.value.title, chapterTitles.value)
-
-//   initializeCharMap()
-
-//   await nextTick()
-
-//   window.scrollTo({
-//     top: 0,
-//     behavior: 'auto',
-//   })
-// })
 
 watch(testOngoing, (testOngoing) => {
   if (testOngoing) {
@@ -346,7 +303,6 @@ function startTimer() {
 
   let start = Date.now()
   timer_running.value = true
-  console.log('Timer started')
 
   if (running_time.value > 0) {
     start = start - running_time.value * 1000 // continue from previous time (deducted 5s of inactivity)

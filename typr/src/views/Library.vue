@@ -169,7 +169,7 @@ function filterReadingEase(selectedReadingEase: string[]) {
             <path d="m21 21-4.3-4.3"></path>
           </g>
         </svg>
-        <input type="search" required placeholder="Search..." v-model="searchQuery" />
+        <input type="search" ref="searchInput" placeholder="Search..." v-model="searchQuery" />
       </label>
       <FilterModal
         @filter_genres="filterGenre"
@@ -180,7 +180,7 @@ function filterReadingEase(selectedReadingEase: string[]) {
     </div>
     <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
     <div v-if="!loading" class="flex justify-between">
-      Displaying {{ (currentPage - 1) * booksPerPage + 1 }} to
+      Displaying {{ count > 0 ? (currentPage - 1) * booksPerPage + 1 : 0 }} to
       {{ Math.min(currentPage * booksPerPage, count) }} / {{ count }} books
 
       <div class="join">

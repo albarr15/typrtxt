@@ -75,26 +75,6 @@ const getChapters = async () => {
         return chapter.title?.replace(/\s+/g, ' ').trim() || `Chapter ${idx + 1}`
       })
 
-      // const savedSession = localStorage.getItem(`typing-session-${props.id}`)
-      // let fetchedChapIdx = props.chapIdx
-
-      // if (savedSession) {
-      //   try {
-      //     const { chapterIndex: savedChapterIndex } = JSON.parse(savedSession)
-      //     if (confirm('Continue previous session?')) {
-      //       fetchedChapIdx = savedChapterIndex
-      //     } else {
-      //       // User declined, clear localStorage
-      //       localStorage.removeItem(`typing-session-${props.id}`)
-      //     }
-      //   } catch (e) {
-      //     console.error('Failed to restore session:', e)
-      //   }
-      // }
-
-      // // Get previous chapter index if found
-      // chapterIndex.value = initialChapterIdx
-
       chapterTitle.value = chapterTitles.value[props.chapIdx] || foundBook.value.title
 
       emit('updateBookInfo', foundBook.value.title, chapterTitles.value, props.chapIdx)
@@ -130,7 +110,7 @@ const keydownHandler = (event: KeyboardEvent) => {
     previousChar.done = false
     previousChar.correct = false
 
-    if (previousChar.char == '\n') previousChar.displayChar = '\n\n'
+    if (previousChar.char == '\n') previousChar.displayChar = '↵\n\n'
     else previousChar.displayChar = previousChar.char
 
     return
@@ -138,26 +118,21 @@ const keydownHandler = (event: KeyboardEvent) => {
 
   if (event.key === ' ') {
     totalKeypresses.value++
-    typed_id.value++
     current_char.done = true
-    current_char.displayChar = ' '
+
     if (current_char.char === ' ') {
       current_char.correct = true
+      current_char.displayChar = ' '
     } else {
       current_char.correct = false
       current_char.displayChar = '_'
     }
+
+    typed_id.value++
     return
   }
 
-  if (event.key.length === 1) {
-    typed_id.value++
-    totalKeypresses.value++
-    current_char.done = true
-  }
-
   if (event.key === 'Enter') {
-    typed_id.value++
     totalKeypresses.value++
     current_char.done = true
     if (current_char.char === '\n') {
@@ -165,13 +140,20 @@ const keydownHandler = (event: KeyboardEvent) => {
     } else {
       current_char.correct = false
     }
+    typed_id.value++
     return
   }
 
-  if (event.key === current_char.char) {
-    current_char.correct = true
-  } else {
-    current_char.correct = false
+  if (event.key.length === 1) {
+    totalKeypresses.value++
+    current_char.done = true
+
+    if (event.key === current_char.char) {
+      current_char.correct = true
+    } else {
+      current_char.correct = false
+    }
+    typed_id.value++
   }
 }
 
@@ -205,7 +187,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    .slice(0, 100)
+    .slice(0, 1000)
     .map((char, id) => {
       let textChar = {
         id,
@@ -215,7 +197,7 @@ function initializeCharMap() {
         correct: false,
       }
       if (char === '\n') {
-        textChar.displayChar = '\n\n'
+        textChar.displayChar = '↵\n\n'
       }
       return textChar
     })
@@ -360,7 +342,10 @@ function startTimer() {
       timer_running.value = false
       testOngoing.value = false
 
-      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value)
+      let newIdx = props.chapIdx
+      newIdx++
+
+      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value, newIdx)
 
       if (completionModalRef.value) completionModalRef.value.showModal()
       return
@@ -398,7 +383,7 @@ function resetTypingTest() {
     charMap.value.forEach((char: TextChar) => {
       char.done = false
       char.correct = false
-      char.displayChar = char.char === '\n' ? '\n\n' : char.char
+      char.displayChar = char.char === '\n' ? '↵\n\n' : char.char
     })
   }
 }

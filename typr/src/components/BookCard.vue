@@ -41,7 +41,7 @@ const lengthLabel = (wordCount: string | null) => {
 <template>
   <router-link :to="`/test/${book.id}`">
     <div
-      class="card card-side h-60 w-full border border-base-200 bg-base-100 shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-xl"
+      class="card card-side h-60 w-full min-w-[430px] border border-base-content/10 bg-base-100 shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-xl"
     >
       <figure class="w-40 shrink-0">
         <img :src="book.cover_url" alt="Book Cover" class="h-full w-full object-cover" />

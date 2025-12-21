@@ -43,7 +43,6 @@ let bookTitle = ref('Book Title')
 
 function updateStats(newStats: Object) {
   stats.value = newStats
-  // console.log(stats.value)
 
   accuracy.value = stats.value.accuracy
   wpm.value = stats.value.netWPM
@@ -63,15 +62,16 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
   >
     <div class="sticky top-24 z-10">
       <div
-        class="flex items-center justify-between gap-4 rounded-xl bg-base-200 p-2 text-xs text-base-content/70 shadow-md"
+        class="flex items-center justify-between gap-4 rounded-xl border border-base-content/10 bg-base-200 p-2 text-xs text-base-content/70 shadow-md"
       >
         <!-- book info -->
-        <div>{{ displayTime }}</div>
-        <div class="flex flex-col items-center justify-center">
+        <div class="flex min-w-9 flex-0">{{ displayTime }}</div>
+        <div class="flex flex-1 flex-col items-center justify-center">
           <div>{{ bookTitle }}</div>
+
           <div class="font-bold">{{ bookChapterTitles[bookChapterIdx] }}</div>
         </div>
-        <div class="flex items-center justify-center gap-5">
+        <div class="flex min-w-20 flex-0 items-center justify-center gap-5">
           <div class="font-bold">{{ wpm }}</div>
           <div class="font-bold">{{ accuracy }}%</div>
         </div>

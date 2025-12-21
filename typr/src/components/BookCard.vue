@@ -70,10 +70,4 @@ const lengthLabel = (wordCount: string | null) => {
   </router-link>
 </template>
 
-<style scoped>
-@media only screen and (max-width: 1026px) {
-  #book-tags {
-    display: none;
-  }
-}
-</style>
+<style scoped></style>

@@ -196,7 +196,10 @@ function filterReadingEase(selectedReadingEase: string[]) {
       </div>
     </div>
 
-    <div v-if="fetchedBooks.length > 0 && !loading" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div
+      v-if="fetchedBooks.length > 0 && !loading"
+      class="grid grid-cols-1 gap-6 xl:grid-cols-2 2xl:grid-cols-3"
+    >
       <BookCard
         v-for="b in fetchedBooks"
         :key="b.id"

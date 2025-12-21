@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { Component } from 'vue'
-import router from '../router'
+import { ref } from 'vue'
 
 const isDarkMode = ref(false)
 const savedTheme = localStorage.getItem('theme')
@@ -98,12 +96,4 @@ function toggleTheme() {
   </nav>
 </template>
 
-<style scoped>
-/* ul > li {
-  user-select: none !important;
-}
-
-summary {
-  user-select: none !important;
-} */
-</style>
+<style scoped></style>

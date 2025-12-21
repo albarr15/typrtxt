@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
+import NotFound from '../views/NotFound.vue'
 
 const routes = [
   {
@@ -33,11 +34,9 @@ const routes = [
     component: () => import('../views/Settings.vue'),
   },
   {
-    // lazy loaded route
-    path: '/book/:id',
-    name: 'Book',
-    component: () => import('../views/BookOverview.vue'),
-    props: true,
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: NotFound,
   },
 ]
 

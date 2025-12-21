@@ -27,7 +27,7 @@ interface TextChar {
 const foundBook = ref<BookInfo | null>(null)
 const loading = ref<boolean>(true)
 
-const textContent1 = ref<Chapter[]>([])
+const bookContent = ref<Chapter[]>([])
 const chapterTitles = ref<string[]>([])
 const charMap = ref<TextChar[]>([])
 const chapterTitle = ref<string>('')
@@ -43,6 +43,52 @@ const finalStats = ref({
   incorrectChars: 0,
   totalTime: 0,
 })
+
+const typingRoot = ref<HTMLElement | null>(null)
+
+let typed_id = ref(0) // id of the last typed character
+let totalKeypresses = ref<number>(0)
+let last_typed_time = ref(Date.now())
+let timer_running = ref(false)
+let running_time = ref(0) // in seconds
+
+let testOngoing = ref<boolean>(false)
+let testIntervalId: ReturnType<typeof setInterval> | null = null
+let timerIntervalId: ReturnType<typeof setInterval> | null = null
+
+let emit = defineEmits([
+  'current_running_time',
+  'updateStats',
+  'updateBookInfo',
+  'fetchChapterTitles',
+])
+emit('current_running_time', running_time.value)
+
+let stats = computed(() => {
+  const minutes = running_time.value / 60
+  const typedChars = totalKeypresses.value
+
+  const incorrectChars = charMap.value.filter((c: TextChar) => c.done && !c.correct).length
+
+  const grossNumerator = typedChars / 5
+  const grossWPM = minutes > 0 ? grossNumerator / minutes : 0
+  const netWPM = minutes > 0 ? (grossNumerator - incorrectChars) / minutes : 0
+
+  const correctChars = charMap.value.filter((c: TextChar) => c.done && c.correct).length
+  const accuracy = Math.round((correctChars / typedChars) * 100) || 0
+
+  return {
+    grossWPM: Math.round(grossWPM) || 0,
+    netWPM: Math.round(netWPM) || 0,
+    typedChars: typedChars,
+    correctChars: correctChars,
+    incorrectChars: incorrectChars,
+    accuracy: accuracy,
+    minutes: minutes,
+  }
+})
+
+const caret = ref<HTMLElement | null>(null)
 
 const fetchBook = async () => {
   try {
@@ -69,9 +115,9 @@ const fetchBook = async () => {
 const getChapters = async () => {
   try {
     if (foundBook.value) {
-      textContent1.value = await getEpubChapters(foundBook.value.path)
+      bookContent.value = await getEpubChapters(foundBook.value.path)
 
-      chapterTitles.value = textContent1.value.map((chapter, idx) => {
+      chapterTitles.value = bookContent.value.map((chapter, idx) => {
         return chapter.title?.replace(/\s+/g, ' ').trim() || `Chapter ${idx + 1}`
       })
 
@@ -157,22 +203,17 @@ const keydownHandler = (event: KeyboardEvent) => {
   }
 }
 
-let typed_id = ref(0) // id of the last typed character
-let totalKeypresses = ref<number>(0)
-let last_typed_time = ref(Date.now())
-let timer_running = ref(false)
-let running_time = ref(0) // in seconds
+const handleClick = () => {
+  typingRoot.value?.focus()
+}
 
-let emit = defineEmits([
-  'current_running_time',
-  'updateStats',
-  'updateBookInfo',
-  'fetchChapterTitles',
-])
-emit('current_running_time', running_time.value)
+onMounted(() => {
+  fetchBook()
+  window.addEventListener('keydown', keydownHandler, true)
+})
 
 function initializeCharMap() {
-  const text = textContent1.value.at(props.chapIdx)?.content
+  const text = bookContent.value.at(props.chapIdx)?.content
   if (!text) {
     charMap.value = []
     console.error('No text content found')
@@ -211,7 +252,7 @@ function initializeCharMap() {
     // Remove leading newlines
     .filter((char, idx) => !(char === '\n' && idx === 0))
 
-    .slice(0, 3000)
+    .slice(0, 200)
     .map((char, id) => {
       let textChar = {
         id,
@@ -228,98 +269,6 @@ function initializeCharMap() {
 
   charMap.value = characters
 }
-
-let stats = computed(() => {
-  const minutes = running_time.value / 60
-  const typedChars = totalKeypresses.value
-
-  const incorrectChars = charMap.value.filter((c: TextChar) => c.done && !c.correct).length
-
-  const grossNumerator = typedChars / 5
-  const grossWPM = minutes > 0 ? grossNumerator / minutes : 0
-  const netWPM = minutes > 0 ? (grossNumerator - incorrectChars) / minutes : 0
-
-  const correctChars = charMap.value.filter((c: TextChar) => c.done && c.correct).length
-  const accuracy = Math.round((correctChars / typedChars) * 100) || 0
-
-  return {
-    grossWPM: Math.round(grossWPM) || 0,
-    netWPM: Math.round(netWPM) || 0,
-    typedChars: typedChars,
-    correctChars: correctChars,
-    incorrectChars: incorrectChars,
-    accuracy: accuracy,
-    minutes: minutes,
-  }
-})
-
-const caret = ref<HTMLElement | null>(null)
-
-watch(typed_id, (newId) => {
-  // start test timer
-  last_typed_time.value = Date.now()
-
-  if (!timer_running.value) {
-    startTimer()
-  }
-
-  // Animating text cursor
-  const textContent = document.getElementById('text-content')
-  const container = document.getElementById('text-content')?.parentElement
-  const currentCharSpan = document.getElementById('char-' + newId)
-
-  if (!currentCharSpan || !textContent || !container) return
-
-  let containerPos = container.getBoundingClientRect()
-  let textContentPos = textContent.getBoundingClientRect()
-  let currentCharPos = currentCharSpan.getBoundingClientRect()
-
-  const containerCenter = containerPos.top + containerPos.height / 2
-
-  if (caret.value) {
-    const viewportHeight = window.innerHeight
-
-    // scroll when caret goes below 65% of viewport
-    if (currentCharPos.top > viewportHeight * 0.65) {
-      currentCharSpan.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      })
-    }
-
-    if (currentCharPos.top < window.innerHeight * 0.25) {
-      currentCharSpan.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      })
-    }
-
-    caret.value.style.top = `${currentCharSpan.offsetTop - 5}px`
-
-    caret.value.style.left = `${currentCharSpan.offsetLeft - 10}px`
-  }
-})
-let testOngoing = ref<boolean>(false)
-let testIntervalId: ReturnType<typeof setInterval> | null = null
-
-watch(testOngoing, (testOngoing) => {
-  if (testOngoing) {
-    testIntervalId = setInterval(() => emit('updateStats', stats.value), 1000)
-  } else if (testIntervalId !== null && !testOngoing) {
-    clearInterval(testIntervalId)
-    testIntervalId = null
-    nextTick(() => {
-      typingRoot.value?.focus() // Refocus after reset
-    })
-  }
-})
-
-onMounted(() => {
-  fetchBook()
-  window.addEventListener('keydown', keydownHandler, true)
-})
-
-let timerIntervalId: ReturnType<typeof setInterval> | null = null
 
 function startTimer() {
   if (timerIntervalId !== null) clearInterval(timerIntervalId)
@@ -389,14 +338,6 @@ function stopTimer() {
   timer_running.value = false
 }
 
-onUnmounted(() => {
-  stopTimer()
-  if (testIntervalId !== null) {
-    clearInterval(testIntervalId)
-  }
-  window.removeEventListener('keydown', keydownHandler, true)
-})
-
 function resetTypingTest() {
   stopTimer()
   typed_id.value = 0
@@ -412,13 +353,67 @@ function resetTypingTest() {
   }
 }
 
-const typingRoot = ref<HTMLElement | null>(null)
-
 function focus() {
   typingRoot.value?.focus()
 }
 
-defineExpose({ focus })
+watch(typed_id, (newId) => {
+  // start test timer
+  last_typed_time.value = Date.now()
+
+  if (!timer_running.value) {
+    startTimer()
+  }
+
+  // Animating text cursor
+  const textContent = document.getElementById('text-content')
+  const container = document.getElementById('text-content')?.parentElement
+  const currentCharSpan = document.getElementById('char-' + newId)
+
+  if (!currentCharSpan || !textContent || !container) return
+
+  let containerPos = container.getBoundingClientRect()
+  let textContentPos = textContent.getBoundingClientRect()
+  let currentCharPos = currentCharSpan.getBoundingClientRect()
+
+  const containerCenter = containerPos.top + containerPos.height / 2
+
+  if (caret.value) {
+    const viewportHeight = window.innerHeight
+
+    // scroll when caret goes below 65% of viewport
+    if (currentCharPos.top > viewportHeight * 0.65) {
+      currentCharSpan.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }
+
+    if (currentCharPos.top < window.innerHeight * 0.25) {
+      currentCharSpan.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }
+
+    caret.value.style.top = `${currentCharSpan.offsetTop - 5}px`
+
+    caret.value.style.left = `${currentCharSpan.offsetLeft - 10}px`
+  }
+})
+
+watch(testOngoing, (testOngoing) => {
+  if (testOngoing) {
+    testIntervalId = setInterval(() => emit('updateStats', stats.value), 1000)
+  } else if (testIntervalId !== null && !testOngoing) {
+    clearInterval(testIntervalId)
+    testIntervalId = null
+    nextTick(() => {
+      typingRoot.value?.focus() // Refocus after reset
+    })
+  }
+})
+
 watch(
   () => props.chapIdx,
   async () => {
@@ -436,9 +431,15 @@ watch(
   },
 )
 
-const handleClick = () => {
-  typingRoot.value?.focus()
-}
+defineExpose({ focus })
+
+onUnmounted(() => {
+  stopTimer()
+  if (testIntervalId !== null) {
+    clearInterval(testIntervalId)
+  }
+  window.removeEventListener('keydown', keydownHandler, true)
+})
 </script>
 
 <template>

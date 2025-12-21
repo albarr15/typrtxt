@@ -91,7 +91,6 @@ const getChapters = async () => {
     }
   } catch (error) {
     console.error('Error fetching chapters:', error)
-    alert('Error fetching chapters')
   }
 }
 
@@ -175,6 +174,9 @@ let emit = defineEmits([
   'updateBookInfo',
   'fetchChapterTitles',
 ])
+
+let showCompletionModal= ref<boolean>(false)
+
 emit('current_running_time', running_time.value)
 
 function initializeCharMap() {
@@ -193,7 +195,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    .slice(0, 500)
+    .slice(0, 200)
     .map((char, id) => {
       let textChar = {
         id,
@@ -303,6 +305,9 @@ onMounted(() => {
 
 let timerIntervalId: ReturnType<typeof setInterval> | null = null
 
+let showTimerStopToast = ref<boolean>(false)
+const completionModalRef = ref<HTMLDialogElement | null>(null);
+
 function startTimer() {
   if (timerIntervalId !== null) clearInterval(timerIntervalId)
 
@@ -316,7 +321,14 @@ function startTimer() {
   timerIntervalId = setInterval(() => {
     // stop timer when no presses detected for 5 seconds
     if (Date.now() - last_typed_time.value > 5000) {
-      // alert('Timer stopped')
+      
+      showTimerStopToast.value = true
+
+        setTimeout(() => {
+      showTimerStopToast.value = false;
+    }, 5000);
+
+      
       clearInterval(timerIntervalId!)
       testOngoing.value = false
       running_time.value = Math.max(0, running_time.value - 5) // deduct 5s of inactivity + end of current second
@@ -327,12 +339,11 @@ function startTimer() {
     }
 
     if (charMap.value.length === typed_id.value) {
-      alert('Test completed!')
+      if (completionModalRef.value) completionModalRef.value.showModal();
+
       clearInterval(timerIntervalId!)
       timer_running.value = false
       testOngoing.value = false
-
-      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value)
 
       return
     }
@@ -401,6 +412,7 @@ watch(
 const handleClick = () => {
   typingRoot.value?.focus()
 }
+
 </script>
 
 <template>
@@ -433,6 +445,30 @@ const handleClick = () => {
         >
       </div>
     </div>
+    
+    <div class="toast z-100" v-if="showTimerStopToast">
+      <div class="alert alert-warning">
+        <span>User inactive for 5s: Timer stopped.</span>
+      </div>
+    </div>
+    <dialog id="completionModal" ref="completionModalRef" class="modal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Test Completed!</h3>
+        <p class="py-4">
+          <ul>
+            <li>Net WPM: {{ stats.netWPM }}</li>
+            <li>Accuracy: {{ stats.accuracy }}</li>
+            <li>Total time: {{ running_time }}</li>
+            <li>Total correct characters: {{ stats.correctChars }}</li>
+            <li>Total incorrect characters: {{ stats.incorrectChars }}</li>
+            <li>Total typed characters: {{ stats.typedChars }}</li>
+          </ul>
+        </p>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
   </div>
 </template>
 

@@ -11,15 +11,15 @@ const props = defineProps({
   },
 })
 
-var current_running_time = ref(0)
-var displayTime = ref('00:00:00')
+let current_running_time = ref(0)
+let displayTime = ref('00:00:00')
 
 function updateTimer(newTime: number) {
   current_running_time.value = newTime
 
   let date = new Date(0)
   date.setSeconds(newTime)
-  var timeString = date.toISOString().substring(11, 19)
+  let timeString = date.toISOString().substring(11, 19)
   if (timeString[0] == '0' || timeString[1] == '0') {
     timeString = timeString.substring(3) // hide hours display
   }
@@ -34,9 +34,9 @@ function selectChapter(idx: number) {
   modal?.close()
 }
 
-var stats = ref()
-var accuracy = ref(0)
-var wpm = ref(0)
+let stats = ref()
+let accuracy = ref(0)
+let wpm = ref(0)
 let bookChapterTitles = ref<string[]>([])
 let bookChapterIdx = ref<number>(0)
 let bookTitle = ref('Book Title')
@@ -66,12 +66,12 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
         class="flex items-center justify-between gap-4 rounded-xl bg-base-200 p-2 text-xs text-base-content/70 shadow-md"
       >
         <!-- book info -->
-        <div>{{ displayTime }}</div>
-        <div class="flex flex-col items-center justify-center">
+        <div class="flex min-w-9 flex-0">{{ displayTime }}</div>
+        <div class="flex flex-1 flex-col items-center justify-center">
           <div>{{ bookTitle }}</div>
           <div class="font-bold">{{ bookChapterTitles[bookChapterIdx] }}</div>
         </div>
-        <div class="flex items-center justify-center gap-5">
+        <div class="flex min-w-20 flex-0 items-center justify-center gap-5">
           <div class="font-bold">{{ wpm }}</div>
           <div class="font-bold">{{ accuracy }}%</div>
         </div>

@@ -27,8 +27,6 @@ function updateTimer(newTime: number) {
 }
 
 function selectChapter(idx: number) {
-  console.log('Changing chapterIndex to ', idx)
-
   bookChapterIdx.value = idx
   const modal = document.getElementById('chaptermodal') as HTMLDialogElement
   modal?.close()
@@ -43,7 +41,6 @@ let bookTitle = ref('Book Title')
 
 function updateStats(newStats: Object) {
   stats.value = newStats
-  // console.log(stats.value)
 
   accuracy.value = stats.value.accuracy
   wpm.value = stats.value.netWPM
@@ -53,7 +50,6 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
   bookTitle.value = title
   bookChapterTitles.value = chapters
   bookChapterIdx.value = chapterIdx
-  console.log(bookChapterTitles.value)
 }
 </script>
 

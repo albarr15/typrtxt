@@ -134,7 +134,6 @@ const getChapters = async () => {
     }
   } catch (error) {
     console.error('Error fetching chapters:', error)
-    alert('Error fetching chapters')
   }
 }
 

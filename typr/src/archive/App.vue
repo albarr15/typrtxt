@@ -46,24 +46,24 @@ const textContent = ref(
     ' invisible to the eye.',
 )
 
-var current_running_time = ref(0)
-var displayTime = ref('00:00:00')
+let current_running_time = ref(0)
+let displayTime = ref('00:00:00')
 
 function updateTimer(newTime: number) {
   current_running_time.value = newTime
 
   let date = new Date(0)
   date.setSeconds(newTime)
-  var timeString = date.toISOString().substring(11, 19)
+  let timeString = date.toISOString().substring(11, 19)
   if (timeString[0] == '0' || timeString[1] == '0') {
     timeString = timeString.substring(3) // hide hours display
   }
   displayTime.value = timeString
 }
 
-var stats = ref()
-var accuracy = ref(0)
-var wpm = ref(0)
+let stats = ref()
+let accuracy = ref(0)
+let wpm = ref(0)
 
 function updateStats(newStats: Object) {
   stats.value = newStats

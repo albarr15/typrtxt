@@ -63,26 +63,6 @@ const getChapters = async () => {
         return chapter.title?.replace(/\s+/g, ' ').trim() || `Chapter ${idx + 1}`
       })
 
-      // const savedSession = localStorage.getItem(`typing-session-${props.id}`)
-      // let fetchedChapIdx = props.chapIdx
-
-      // if (savedSession) {
-      //   try {
-      //     const { chapterIndex: savedChapterIndex } = JSON.parse(savedSession)
-      //     if (confirm('Continue previous session?')) {
-      //       fetchedChapIdx = savedChapterIndex
-      //     } else {
-      //       // User declined, clear localStorage
-      //       localStorage.removeItem(`typing-session-${props.id}`)
-      //     }
-      //   } catch (e) {
-      //     console.error('Failed to restore session:', e)
-      //   }
-      // }
-
-      // // Get previous chapter index if found
-      // chapterIndex.value = initialChapterIdx
-
       chapterTitle.value = chapterTitles.value[props.chapIdx] || foundBook.value.title
 
       emit('updateBookInfo', foundBook.value.title, chapterTitles.value, props.chapIdx)
@@ -91,7 +71,6 @@ const getChapters = async () => {
     }
   } catch (error) {
     console.error('Error fetching chapters:', error)
-    alert('Error fetching chapters')
   }
 }
 
@@ -175,6 +154,9 @@ let emit = defineEmits([
   'updateBookInfo',
   'fetchChapterTitles',
 ])
+
+let showCompletionModal= ref<boolean>(false)
+
 emit('current_running_time', running_time.value)
 
 function initializeCharMap() {
@@ -187,13 +169,38 @@ function initializeCharMap() {
 
   const characters = text
     .split('')
-    .filter((char) => char !== '\t') // remove tabs
+
+    // remove tabs
+    .filter((char) => char !== '\t') 
+
+    .map((char) => {
+      // Normalize different spaces
+      if (char === '\u00A0') return ' ' // no break space
+      if (/[\u2000-\u200B]/.test(char)) return ' ' // em space, en space, thin space, etc
+
+      // normalize quotes (smart / curly quotes to straight)
+      if (char === '\u2018' || char === '\u2019') return "'"
+      if (char === '\u201C' || char === '\u201D') return '"'
+
+      // normalize dashes 
+      if (char === '-' || char === '–' || char === '—' || char ==='―') return '-'
+      return char
+    })
+
+    // remove invisible characters
+    .filter((char) => !/[\u200B-\u200D\uFEFF]/.test(char))
+
+    // remove consecutive newlines
     .filter((char, idx, arr) => {
       if (char === '\n' && (arr[idx - 1] === '\n' || idx == 0)) {
-        return false // remove consecutive newlines
+        return false 
       } else return true
     })
-    .slice(0, 500)
+
+    // Remove leading newlines
+    .filter((char, idx) => !(char === '\n' && idx === 0))
+
+    .slice(0, 3000)
     .map((char, id) => {
       let textChar = {
         id,
@@ -303,6 +310,9 @@ onMounted(() => {
 
 let timerIntervalId: ReturnType<typeof setInterval> | null = null
 
+let showTimerStopToast = ref<boolean>(false)
+const completionModalRef = ref<HTMLDialogElement | null>(null);
+
 function startTimer() {
   if (timerIntervalId !== null) clearInterval(timerIntervalId)
 
@@ -316,7 +326,14 @@ function startTimer() {
   timerIntervalId = setInterval(() => {
     // stop timer when no presses detected for 5 seconds
     if (Date.now() - last_typed_time.value > 5000) {
-      // alert('Timer stopped')
+      
+      showTimerStopToast.value = true
+
+        setTimeout(() => {
+      showTimerStopToast.value = false;
+    }, 5000);
+
+      
       clearInterval(timerIntervalId!)
       testOngoing.value = false
       running_time.value = Math.max(0, running_time.value - 5) // deduct 5s of inactivity + end of current second
@@ -327,12 +344,11 @@ function startTimer() {
     }
 
     if (charMap.value.length === typed_id.value) {
-      alert('Test completed!')
+      if (completionModalRef.value) completionModalRef.value.showModal();
+
       clearInterval(timerIntervalId!)
       timer_running.value = false
       testOngoing.value = false
-
-      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value)
 
       return
     }
@@ -401,6 +417,7 @@ watch(
 const handleClick = () => {
   typingRoot.value?.focus()
 }
+
 </script>
 
 <template>
@@ -433,6 +450,30 @@ const handleClick = () => {
         >
       </div>
     </div>
+    
+    <div class="toast z-100" v-if="showTimerStopToast">
+      <div class="alert alert-warning">
+        <span>User inactive for 5s: Timer stopped.</span>
+      </div>
+    </div>
+    <dialog id="completionModal" ref="completionModalRef" class="modal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Test Completed!</h3>
+        <p class="py-4">
+          <ul>
+            <li>Net WPM: {{ stats.netWPM }}</li>
+            <li>Accuracy: {{ stats.accuracy }}</li>
+            <li>Total time: {{ running_time }}</li>
+            <li>Total correct characters: {{ stats.correctChars }}</li>
+            <li>Total incorrect characters: {{ stats.incorrectChars }}</li>
+            <li>Total typed characters: {{ stats.typedChars }}</li>
+          </ul>
+        </p>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
   </div>
 </template>
 

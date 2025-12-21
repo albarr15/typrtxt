@@ -37,6 +37,7 @@ const charMap = ref<TextChar[]>([])
 const chapterTitle = ref<string>('')
 
 let showTimerStopToast = ref<boolean>(false)
+
 const completionModalRef = ref<HTMLDialogElement | null>(null)
 const finalStats = ref({
   netWPM: 0,
@@ -223,7 +224,7 @@ const text = computed(() => {
 function initializeCharMap() {
   if (!text.value) {
     charMap.value = []
-    console.error('No text content found')
+    // console.error('No text content found')
     return
   }
 
@@ -278,6 +279,7 @@ function initializeCharMap() {
 }
 
 function startTimer() {
+  if (!completionModalRef === null) return
   if (timerIntervalId !== null) clearInterval(timerIntervalId)
 
   let start = Date.now()
@@ -288,26 +290,28 @@ function startTimer() {
   }
 
   timerIntervalId = setInterval(() => {
-    // stop timer when no presses detected for 5 seconds
-    if (Date.now() - last_typed_time.value > 5000) {
-      // alert('Timer stopped')
+    const now = Date.now()
+    const delta = now - start
+    running_time.value = Math.floor(delta / 1000)
+    emit('current_running_time', running_time.value)
 
+    // stop timer when no presses detected for 5 seconds
+    if (now - last_typed_time.value > 5000) {
       showTimerStopToast.value = true
 
       setTimeout(() => {
         showTimerStopToast.value = false
       }, 5000)
 
-      clearInterval(timerIntervalId!)
+      stopTimer()
       testOngoing.value = false
       running_time.value = Math.max(0, running_time.value - 5) // deduct 5s of inactivity + end of current second
-      timer_running.value = false
 
       emit('current_running_time', running_time.value)
       return
     }
 
-    if (charMap.value.length === typed_id.value) {
+    if (typed_id.value >= charMap.value.length) {
       finalStats.value = {
         netWPM: stats.value.netWPM,
         grossWPM: stats.value.grossWPM,
@@ -318,22 +322,16 @@ function startTimer() {
         totalTime: running_time.value,
       }
 
-      clearInterval(timerIntervalId!)
-      timer_running.value = false
+      stopTimer()
       testOngoing.value = false
+      running_time.value = 0
+      emit('current_running_time', running_time.value)
 
-      let newIdx = props.chapIdx
-      newIdx++
-
-      emit('updateBookInfo', foundBook.value?.title, chapterTitles.value, newIdx)
-
-      if (completionModalRef.value) completionModalRef.value.showModal()
+      nextTick(() => {
+        completionModalRef.value?.showModal()
+      })
       return
     }
-
-    const delta = Date.now() - start
-    running_time.value = Math.floor(delta / 1000)
-    emit('current_running_time', running_time.value)
   }, 200)
 }
 
@@ -362,6 +360,12 @@ function resetTypingTest() {
 
 function focus() {
   typingRoot.value?.focus()
+}
+
+function advanceChapter() {
+  let newIdx = props.chapIdx + 1
+
+  emit('updateBookInfo', foundBook.value?.title, chapterTitles.value, newIdx)
 }
 
 watch(typed_id, (newId) => {
@@ -478,7 +482,7 @@ onUnmounted(() => {
         <span>User inactive for 5s: Timer stopped.</span>
       </div>
     </div>
-    <dialog ref="completionModalRef" class="modal">
+    <dialog ref="completionModalRef" class="modal" @close="advanceChapter">
       <div class="modal-box bg-base-200">
         <h3 class="text-lg font-bold">Test Completed!</h3>
         <div class="flex flex-col space-y-4 py-4">
@@ -541,13 +545,10 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-
-        <div class="modal-action">
-          <form method="dialog">
-            <button class="btn btn-primary">Close</button>
-          </form>
-        </div>
       </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>Close</button>
+      </form>
     </dialog>
   </div>
 </template>

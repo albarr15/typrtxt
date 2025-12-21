@@ -32,6 +32,18 @@ const chapterTitles = ref<string[]>([])
 const charMap = ref<TextChar[]>([])
 const chapterTitle = ref<string>('')
 
+let showTimerStopToast = ref<boolean>(false)
+const completionModalRef = ref<HTMLDialogElement | null>(null)
+const finalStats = ref({
+  netWPM: 0,
+  grossWPM: 0,
+  accuracy: 0,
+  typedChars: 0,
+  correctChars: 0,
+  incorrectChars: 0,
+  totalTime: 0,
+})
+
 const fetchBook = async () => {
   try {
     loading.value = true
@@ -193,7 +205,7 @@ function initializeCharMap() {
         return false // remove consecutive newlines
       } else return true
     })
-    .slice(0, 500)
+    .slice(0, 100)
     .map((char, id) => {
       let textChar = {
         id,
@@ -317,6 +329,13 @@ function startTimer() {
     // stop timer when no presses detected for 5 seconds
     if (Date.now() - last_typed_time.value > 5000) {
       // alert('Timer stopped')
+
+      showTimerStopToast.value = true
+
+      setTimeout(() => {
+        showTimerStopToast.value = false
+      }, 5000)
+
       clearInterval(timerIntervalId!)
       testOngoing.value = false
       running_time.value = Math.max(0, running_time.value - 5) // deduct 5s of inactivity + end of current second
@@ -327,13 +346,23 @@ function startTimer() {
     }
 
     if (charMap.value.length === typed_id.value) {
-      alert('Test completed!')
+      finalStats.value = {
+        netWPM: stats.value.netWPM,
+        grossWPM: stats.value.grossWPM,
+        accuracy: stats.value.accuracy,
+        typedChars: stats.value.typedChars,
+        correctChars: stats.value.correctChars,
+        incorrectChars: stats.value.incorrectChars,
+        totalTime: running_time.value,
+      }
+
       clearInterval(timerIntervalId!)
       timer_running.value = false
       testOngoing.value = false
 
       emit('updateBookInfo', foundBook.value?.title, chapterTitles.value)
 
+      if (completionModalRef.value) completionModalRef.value.showModal()
       return
     }
 
@@ -433,6 +462,83 @@ const handleClick = () => {
         >
       </div>
     </div>
+
+    <div class="toast z-50" v-if="showTimerStopToast">
+      <div class="alert alert-warning">
+        <span>User inactive for 5s: Timer stopped.</span>
+      </div>
+    </div>
+    <dialog ref="completionModalRef" class="modal">
+      <div class="modal-box bg-base-200">
+        <h3 class="text-lg font-bold">Test Completed!</h3>
+        <div class="flex flex-col space-y-4 py-4">
+          <div class="stats stats-vertical bg-base-100 shadow lg:stats-horizontal">
+            <div class="stat">
+              <div class="stat-title">Net WPM</div>
+              <div class="stat-value">{{ finalStats.netWPM }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">Accuracy</div>
+              <div class="stat-value">{{ finalStats.accuracy }}%</div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">Total Time</div>
+              <div class="stat-value">
+                {{ Math.floor(finalStats.totalTime / 60) }}m {{ finalStats.totalTime % 60 }}s
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="flex flex-col items-center space-y-1 text-sm">
+            <div>
+              <p class="flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  fill="var(--color-success)"
+                  class="bi bi-check-circle-fill mr-2"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"
+                  />
+                </svg>
+                <span class="mr-1 font-bold text-success">{{ finalStats.correctChars }}</span>
+                correct characters
+              </p>
+              <p class="mb-4 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  fill="var(--color-error)"
+                  class="bi bi-x-circle-fill mr-2"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"
+                  />
+                </svg>
+                <span class="mr-1 font-semibold text-error">{{ finalStats.incorrectChars }}</span>
+                incorrect characters
+              </p>
+              <p class="flex items-center">
+                <span class="mr-1 font-semibold">{{ finalStats.typedChars }}</span> total typed
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-primary">Close</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
   </div>
 </template>
 

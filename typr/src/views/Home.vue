@@ -25,8 +25,8 @@ onMounted(() => typeText())
       <div class="max-w-md">
         <h1 class="text-6xl font-bold">{{ text_shown }}</h1>
         <p class="py-6">
-          Practice typing with passages from Frankenstein, Pride and Prejudice, and hundreds of
-          classic novels.
+          Practice typing with passages from Frankenstein, Pride and Prejudice, and more classic
+          novels.
         </p>
         <router-link to="/lib"
           ><button class="btn btn-primary">Type Out A Book</button></router-link

@@ -181,13 +181,37 @@ function initializeCharMap() {
 
   const characters = text
     .split('')
+
     .filter((char) => char !== '\t') // remove tabs
+
+    .map((char) => {
+      // Normalize different spaces
+      if (char === '\u00A0') return ' ' // no break space
+      if (/[\u2000-\u200B]/.test(char)) return ' ' // em space, en space, thin space, etc
+
+      // normalize quotes (smart / curly quotes to straight)
+      if (char === '\u2018' || char === '\u2019') return "'"
+      if (char === '\u201C' || char === '\u201D') return '"'
+
+      // normalize dashes
+      if (char === '-' || char === '–' || char === '—' || char === '―') return '-'
+      return char
+    })
+
+    // remove invisible characters
+    .filter((char) => !/[\u200B-\u200D\uFEFF]/.test(char))
+
+    // remove consecutive newlines
     .filter((char, idx, arr) => {
       if (char === '\n' && (arr[idx - 1] === '\n' || idx == 0)) {
-        return false // remove consecutive newlines
+        return false
       } else return true
     })
-    .slice(0, 1000)
+
+    // Remove leading newlines
+    .filter((char, idx) => !(char === '\n' && idx === 0))
+
+    .slice(0, 3000)
     .map((char, id) => {
       let textChar = {
         id,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch, ref } from 'vue'
+import { ref } from 'vue'
 
 import Keyboard from '../components/Keyboard.vue'
 import TextContent from '../components/TextContent.vue'
@@ -13,6 +13,7 @@ const props = defineProps({
 
 let current_running_time = ref(0)
 let displayTime = ref('00:00:00')
+let testLength = ref<number>(1000)
 
 function updateTimer(newTime: number) {
   current_running_time.value = newTime
@@ -32,12 +33,20 @@ function selectChapter(idx: number) {
   modal?.close()
 }
 
+function selectLength(len: number) {
+  testLength.value = len
+  const modal = document.getElementById('lengthmodal') as HTMLDialogElement
+  modal?.close()
+}
+
 let stats = ref()
 let accuracy = ref(0)
 let wpm = ref(0)
 let bookChapterTitles = ref<string[]>([])
 let bookChapterIdx = ref<number>(0)
 let bookTitle = ref('Book Title')
+
+let testLengths = [100, 250, 500, 1000, 5000]
 
 function updateStats(newStats: Object) {
   stats.value = newStats
@@ -59,12 +68,13 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
   >
     <div class="sticky top-24 z-10">
       <div
-        class="flex items-center justify-between gap-4 rounded-xl bg-base-200 p-2 text-xs text-base-content/70 shadow-md"
+        class="flex items-center justify-between gap-4 rounded-xl border border-base-content/10 bg-base-200 p-2 text-xs text-base-content/70 shadow-md"
       >
         <!-- book info -->
         <div class="flex min-w-9 flex-0">{{ displayTime }}</div>
         <div class="flex flex-1 flex-col items-center justify-center">
           <div>{{ bookTitle }}</div>
+
           <div class="font-bold">{{ bookChapterTitles[bookChapterIdx] }}</div>
         </div>
         <div class="flex min-w-20 flex-0 items-center justify-center gap-5">
@@ -73,18 +83,28 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
         </div>
       </div>
     </div>
-    <button
-      class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
-      onclick="chaptermodal.showModal()"
-    >
-      Change Chapter?
-    </button>
+    <div class="flex gap-4">
+      <button
+        class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
+        onclick="chaptermodal.showModal()"
+      >
+        Change Chapter?
+      </button>
+      <button
+        class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
+        onclick="lengthmodal.showModal()"
+      >
+        Change Length?
+      </button>
+    </div>
+
     <!-- main content -->
     <div class="flex h-4/5 w-full flex-col rounded-xl bg-base-200 px-6 py-4 shadow-md">
       <!-- text content -->
       <TextContent
         :id="props.id"
         :chapIdx="bookChapterIdx"
+        :testLen="testLength"
         @current_running_time="updateTimer"
         @updateStats="updateStats"
         @updateBookInfo="updateBookInfo"
@@ -104,6 +124,25 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
             @click="selectChapter(idx)"
           >
             {{ chapter }}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
+    <dialog id="lengthmodal" class="modal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Select Test Length</h3>
+        <div class="flex flex-col items-center">
+          <button
+            class="btn py-4"
+            v-for="(length, idx) in testLengths"
+            :key="idx"
+            @click="selectLength(length)"
+          >
+            {{ length }}
           </button>
         </div>
       </div>

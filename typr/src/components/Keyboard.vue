@@ -1,24 +1,26 @@
 <script setup lang="ts">
 import Key from './Key.vue'
 
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 
 // Highlight key on press
 
+const handleKeyPress = (event: KeyboardEvent) => {
+  const keyPressed = document.getElementById(event.code)
+  if (keyPressed) {
+    keyPressed.classList.add('bg-primary/50')
+    setTimeout(() => {
+      keyPressed.classList.remove('bg-primary/50')
+    }, 100)
+  }
+}
+
 onMounted(() => {
-  window.addEventListener('keydown', (event) => {
-    event.preventDefault()
+  window.addEventListener('keydown', handleKeyPress)
+})
 
-    // console.log('Key pressed: ' + event.code)
-
-    const keyPressed = document.getElementById(event.code)
-    if (keyPressed) {
-      keyPressed.classList.add('bg-primary/50')
-      setTimeout(() => {
-        keyPressed.classList.remove('bg-primary/50')
-      }, 100)
-    }
-  })
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyPress)
 })
 </script>
 

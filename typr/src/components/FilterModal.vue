@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 
 let filter_genres = ref<string[]>([])
@@ -143,15 +143,10 @@ function addToReadingEase(ease: string) {
           </label>
         </div>
       </div>
-
-      <!-- <p class="py-4">Press ESC key or click the button below to close</p> -->
-      <div class="modal-action">
-        <form method="dialog">
-          <button class="btn mr-2">Clear Filters</button>
-          <button class="btn btn-primary">Filter</button>
-        </form>
-      </div>
     </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
   </dialog>
 </template>
 

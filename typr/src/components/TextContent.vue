@@ -14,6 +14,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  testLen: {
+    type: Number,
+    required: true,
+  },
 })
 
 interface TextChar {
@@ -212,15 +216,18 @@ onMounted(() => {
   window.addEventListener('keydown', keydownHandler, true)
 })
 
+const text = computed(() => {
+  return bookContent.value.at(props.chapIdx)?.content ?? ''
+})
+
 function initializeCharMap() {
-  const text = bookContent.value.at(props.chapIdx)?.content
-  if (!text) {
+  if (!text.value) {
     charMap.value = []
     console.error('No text content found')
     return
   }
 
-  const characters = text
+  const characters = text.value
     .split('')
 
     .filter((char) => char !== '\t') // remove tabs
@@ -252,7 +259,7 @@ function initializeCharMap() {
     // Remove leading newlines
     .filter((char, idx) => !(char === '\n' && idx === 0))
 
-    .slice(0, 200)
+    .slice(0, props.testLen)
     .map((char, id) => {
       let textChar = {
         id,
@@ -415,20 +422,13 @@ watch(testOngoing, (testOngoing) => {
 })
 
 watch(
-  () => props.chapIdx,
-  async () => {
+  [text, () => props.testLen],
+  () => {
     testOngoing.value = false
     initializeCharMap()
     resetTypingTest()
-
-    await nextTick()
-    const firstChar = document.getElementById('char-0')
-    if (firstChar && caret.value) {
-      firstChar.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      caret.value.style.top = `${firstChar.offsetTop - 5}px`
-      caret.value.style.left = `${firstChar.offsetLeft - 10}px`
-    }
   },
+  { immediate: true },
 )
 
 defineExpose({ focus })

@@ -1,10 +1,29 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+
+const text = ref('Great books, greater typing.')
+const text_shown = ref('')
+
+function typeText() {
+  if (text.value.length > text_shown.value.length) {
+    text_shown.value += text.value.charAt(text_shown.value.length)
+    setTimeout(
+      () => {
+        typeText()
+      },
+      Math.floor(Math.random() * 100) + 50,
+    ) // Random delay
+  }
+}
+
+onMounted(() => typeText())
+</script>
 
 <template>
   <div class="hero">
     <div class="hero-content text-center">
       <div class="max-w-md">
-        <h1 class="text-6xl font-bold">Great books, greater typing.</h1>
+        <h1 class="text-6xl font-bold">{{ text_shown }}</h1>
         <p class="py-6">
           Practice typing with passages from Frankenstein, Pride and Prejudice, and hundreds of
           classic novels.

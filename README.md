@@ -1,12 +1,15 @@
 # typrtxt
 
-A typing practice application that lets you improve your skills while reading classic literature. Practice typing with meaningful text from novels like *Frankenstein*, *Little Women*, and *A Tale of Two Cities*.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e53e4522-aac3-4fcb-8f78-2022297eb3d9"/>
+</p>
 
-##  [Video Demonstration](#) |  [Try it Out](http://typrtxt.vercel.app)
+A typing practice application that lets you improve your skills while reading classic literature like *Frankenstein*, *Little Women*, and *A Tale of Two Cities*.
 
+##  [Video Demonstration](https://youtu.be/KUZqQf3LHac) |  [Try it Out](http://typrtxt.vercel.app)
 ## Features
 
-Typr offers a different take on the usual typing websites by allowing users to read meaningful and comprehensive texts from several novels available in the public domain. Check out features such as:
+Typrtxt offers a different take on the usual typing websites by allowing users to read meaningful and comprehensive texts from several novels available in the public domain. Check out features such as:
 
 - **Smart Book Discovery** - Search for specific books or filter by genre, author, book length, or reading ease
 - **Real-time WPM and accuracy tracking** - Responsive interface highlights incorrectly typed characters along with net WPM, timer, and acccuracy as you type

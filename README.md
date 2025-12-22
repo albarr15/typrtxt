@@ -6,7 +6,7 @@
 
 A typing practice application that lets you improve your skills while reading classic literature like *Frankenstein*, *Little Women*, and *A Tale of Two Cities*.
 
-##  [Video Demonstration](https://youtu.be/KUZqQf3LHac) |  [Try it Out](http://typrtxt.vercel.app)
+##  [Video Demonstration](https://youtu.be/ym29Dx00F6U) |  [Try it Out](http://typrtxt.vercel.app)
 ## Features
 
 Typrtxt offers a different take on the usual typing websites by allowing users to read meaningful and comprehensive texts from several novels available in the public domain. Check out features such as:

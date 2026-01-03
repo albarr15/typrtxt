@@ -27,6 +27,12 @@ onMounted(() => typeText())
         <p class="py-6">
           Practice typing with passages from Frankenstein, Pride and Prejudice, and more classic
           novels.
+          <br />
+          <br />
+
+          <span class="text-sm font-light"
+            >Note: Physical keyboard required for maintaining typing integrity.</span
+          >
         </p>
         <router-link to="/lib"
           ><button class="btn btn-primary">Type Out A Book</button></router-link

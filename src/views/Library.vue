@@ -3,6 +3,7 @@ import BookCard from '../components/BookCard.vue'
 import FilterModal from '../components/FilterModal.vue'
 import { onMounted, ref, watch, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
+import { useDebounceFn } from '@vueuse/core'
 
 interface BookInfo {
   id: number
@@ -26,7 +27,7 @@ let selected_lengths = ref<string[]>([])
 let selected_reading_ease = ref<string[]>([])
 
 onMounted(() => {
-  handleFetch()
+  debouncedFetch()
 })
 
 const fetchedBooks = ref<BookInfo[]>([])
@@ -37,8 +38,16 @@ const booksPerPage = ref<number>(20)
 const totalPages = ref<number>(1)
 const count = ref<number>(0)
 
-let indexStart = ref<number>(0)
-let indexEnd = ref<number>(0)
+const indexStart = computed(() => {
+  return (currentPage.value - 1) * booksPerPage.value
+})
+const indexEnd = computed(() => {
+  return currentPage.value * booksPerPage.value
+})
+
+const debouncedFetch = useDebounceFn(() => {
+  handleFetch()
+}, 300)
 
 const handleFetch = async () => {
   try {
@@ -100,32 +109,14 @@ const handleFetch = async () => {
       error,
       count: queryCount,
       status,
-    } = await query.order('title', { ascending: true })
+    } = await query.order('title', { ascending: true }).range(indexStart.value, indexEnd.value - 1)
 
-    indexStart = computed(() => {
-      return (currentPage.value - 1) * booksPerPage.value
-    })
-
-    indexEnd = computed(() => {
-      return currentPage.value * booksPerPage.value
-    })
+    count.value = queryCount ?? 0
 
     if (error && status !== 406) throw error
     if (data) {
-      if (queryCount == null) {
-        count.value = 0
-        return
-      }
-
+      fetchedBooks.value = data
       totalPages.value = queryCount ? Math.ceil(queryCount / booksPerPage.value) : 1
-
-      if (data.length > booksPerPage.value) {
-        fetchedBooks.value = data.slice(indexStart.value, indexEnd.value)
-      } else {
-        fetchedBooks.value = data
-      }
-
-      count.value = queryCount
     }
   } catch (error) {
     console.error('Error fetching books:', error)
@@ -138,7 +129,7 @@ const searchQuery = ref('')
 
 watch(searchQuery, () => {
   currentPage.value = 1
-  handleFetch()
+  debouncedFetch()
 })
 
 function changePage(selectedPage: number) {

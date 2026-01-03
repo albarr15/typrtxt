@@ -44,7 +44,12 @@ const lengthLabel = (wordCount: string | null) => {
       class="card card-side h-60 w-full min-w-[430px] border border-base-content/10 bg-base-100 shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-xl"
     >
       <figure class="w-40 shrink-0">
-        <img :src="book.cover_url" alt="Book Cover" class="h-full w-full object-cover" />
+        <img
+          loading="lazy"
+          :src="book.cover_url"
+          alt="Book Cover"
+          class="h-full w-full object-cover"
+        />
       </figure>
 
       <div class="card-body flex h-full flex-1 flex-col overflow-hidden">

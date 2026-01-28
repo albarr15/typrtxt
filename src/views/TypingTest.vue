@@ -84,18 +84,51 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
       </div>
     </div>
     <div class="flex gap-4">
-      <button
-        class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
-        onclick="chaptermodal.showModal()"
-      >
-        Change Chapter?
-      </button>
-      <button
-        class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
-        onclick="lengthmodal.showModal()"
-      >
-        Change Length?
-      </button>
+      <div class="dropdown dropdown-center">
+        <div
+          tabindex="0"
+          role="button"
+          class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
+        >
+          Change Chapter
+        </div>
+        <ul
+          tabindex="-1"
+          class="dropdown-content menu z-1 w-32 gap-2 rounded-md border border-base-content/10 bg-base-200 p-2 shadow-md"
+        >
+          <li
+            v-for="(chapter, idx) in bookChapterTitles"
+            :key="idx"
+            @click="selectChapter(idx)"
+            class="cursor-pointer pl-2 hover:bg-base-100"
+          >
+            {{ chapter }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="dropdown dropdown-center">
+        <div
+          tabindex="0"
+          role="button"
+          class="hover:text-underline btn m-2 h-8 font-light opacity-30 btn-ghost hover:opacity-50"
+        >
+          Change Length
+        </div>
+        <ul
+          tabindex="-1"
+          class="dropdown-content menu z-1 w-32 gap-2 rounded-md border border-base-content/10 bg-base-200 p-2 shadow-md"
+        >
+          <li
+            v-for="(length, idx) in testLengths"
+            :key="idx"
+            @click="selectLength(length)"
+            class="cursor-pointer pl-2 hover:bg-base-100"
+          >
+            {{ length }}
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- main content -->
@@ -112,25 +145,6 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
     </div>
     <!-- keyboard ui -->
     <Keyboard />
-
-    <dialog id="chaptermodal" class="modal">
-      <div class="modal-box">
-        <h3 class="text-lg font-bold">Select Chapter</h3>
-        <div class="flex flex-col items-center">
-          <button
-            class="btn py-4"
-            v-for="(chapter, idx) in bookChapterTitles"
-            :key="idx"
-            @click="selectChapter(idx)"
-          >
-            {{ chapter }}
-          </button>
-        </div>
-      </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-      </form>
-    </dialog>
 
     <dialog id="lengthmodal" class="modal">
       <div class="modal-box">

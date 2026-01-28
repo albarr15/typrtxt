@@ -2,7 +2,6 @@
 const book = defineProps<{
   id: number
   identifier: string
-  path: string
   title: string
   creator?: string
   language: string

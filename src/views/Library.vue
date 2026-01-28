@@ -5,6 +5,8 @@ import { onMounted, ref, watch, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import { useDebounceFn } from '@vueuse/core'
 
+import { importBooks } from '../utils/bookImporter.ts'
+
 interface BookInfo {
   id: number
   identifier: string
@@ -28,6 +30,7 @@ let selected_reading_ease = ref<string[]>([])
 
 onMounted(() => {
   debouncedFetch()
+  // importBooks().catch((err) => console.error('Import failed:', err))
 })
 
 const fetchedBooks = ref<BookInfo[]>([])

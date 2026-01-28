@@ -84,7 +84,7 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
       </div>
     </div>
     <div class="flex gap-4">
-      <div class="dropdown dropdown-center">
+      <div class="dropdown relative dropdown-center">
         <div
           tabindex="0"
           role="button"
@@ -94,20 +94,20 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
         </div>
         <ul
           tabindex="-1"
-          class="dropdown-content menu z-1 w-32 gap-2 rounded-md border border-base-content/10 bg-base-200 p-2 shadow-md"
+          class="dropdown-content absolute z-1 max-h-96 max-w-64 min-w-32 gap-2 overflow-x-hidden overflow-y-auto rounded-md border border-base-content/10 bg-base-200 p-2 shadow-md"
         >
           <li
             v-for="(chapter, idx) in bookChapterTitles"
             :key="idx"
             @click="selectChapter(idx)"
-            class="cursor-pointer pl-2 hover:bg-base-100"
+            class="cursor-pointer pl-2 hover:bg-base-100 [&:not(:last-child)]:mb-2"
           >
             {{ chapter }}
           </li>
         </ul>
       </div>
 
-      <div class="dropdown dropdown-center">
+      <div class="dropdown relative dropdown-center">
         <div
           tabindex="0"
           role="button"
@@ -117,13 +117,13 @@ function updateBookInfo(title: string, chapters: string[], chapterIdx: number) {
         </div>
         <ul
           tabindex="-1"
-          class="dropdown-content menu z-1 w-32 gap-2 rounded-md border border-base-content/10 bg-base-200 p-2 shadow-md"
+          class="dropdown-content absolute z-1 max-h-96 max-w-64 min-w-32 gap-2 overflow-x-hidden overflow-y-auto rounded-md border border-base-content/10 bg-base-200 p-2 shadow-md"
         >
           <li
             v-for="(length, idx) in testLengths"
             :key="idx"
             @click="selectLength(length)"
-            class="cursor-pointer pl-2 hover:bg-base-100"
+            class="cursor-pointer pl-2 hover:bg-base-100 [&:not(:last-child)]:mb-2"
           >
             {{ length }}
           </li>

@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
-const folderPath = 'public/books'
-const outputPath = 'public/booksList.json'
+const folderPath = './public/books'
+const outputPath = './public/booksList.json'
 
 function scanFolder(folder) {
   return fs

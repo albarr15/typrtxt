@@ -3,6 +3,9 @@ import BookCard from '../components/BookCard.vue'
 import FilterModal from '../components/FilterModal.vue'
 import { onMounted, ref, watch, computed } from 'vue'
 import { supabase } from '../lib/supabaseClient'
+import { useDebounceFn } from '@vueuse/core'
+
+import { importBooks } from '../utils/bookImporter.ts'
 
 interface BookInfo {
   id: number
@@ -26,7 +29,8 @@ let selected_lengths = ref<string[]>([])
 let selected_reading_ease = ref<string[]>([])
 
 onMounted(() => {
-  handleFetch()
+  debouncedFetch()
+  // importBooks().catch((err) => console.error('Import failed:', err))
 })
 
 const fetchedBooks = ref<BookInfo[]>([])
@@ -36,6 +40,17 @@ const currentPage = ref<number>(1)
 const booksPerPage = ref<number>(20)
 const totalPages = ref<number>(1)
 const count = ref<number>(0)
+
+const indexStart = computed(() => {
+  return (currentPage.value - 1) * booksPerPage.value
+})
+const indexEnd = computed(() => {
+  return currentPage.value * booksPerPage.value
+})
+
+const debouncedFetch = useDebounceFn(() => {
+  handleFetch()
+}, 300)
 
 const handleFetch = async () => {
   try {
@@ -97,18 +112,14 @@ const handleFetch = async () => {
       error,
       count: queryCount,
       status,
-    } = await query
-      .order('title', { ascending: true })
-      .range(
-        (currentPage.value - 1) * booksPerPage.value,
-        currentPage.value * booksPerPage.value - 1,
-      )
+    } = await query.order('title', { ascending: true }).range(indexStart.value, indexEnd.value - 1)
+
+    count.value = queryCount ?? 0
 
     if (error && status !== 406) throw error
     if (data) {
-      totalPages.value = queryCount ? Math.ceil(queryCount / booksPerPage.value) : 1
       fetchedBooks.value = data
-      count.value = queryCount || 0
+      totalPages.value = queryCount ? Math.ceil(queryCount / booksPerPage.value) : 1
     }
   } catch (error) {
     console.error('Error fetching books:', error)
@@ -120,7 +131,8 @@ const handleFetch = async () => {
 const searchQuery = ref('')
 
 watch(searchQuery, () => {
-  handleFetch()
+  currentPage.value = 1
+  debouncedFetch()
 })
 
 function changePage(selectedPage: number) {
@@ -129,24 +141,32 @@ function changePage(selectedPage: number) {
 }
 
 function filterGenre(selectedGenres: string[]) {
+  currentPage.value = 1
+
   selected_genres.value = selectedGenres
   console.log('Selected genres:', selected_genres.value)
   handleFetch()
 }
 
 function filterAuthor(selectedAuthors: string[]) {
+  currentPage.value = 1
+
   selected_authors.value = selectedAuthors
   console.log('Selected authors:', selected_authors.value)
   handleFetch()
 }
 
 function filterLength(selectedLengths: string[]) {
+  currentPage.value = 1
+
   selected_lengths.value = selectedLengths
   console.log('Selected lengths:', selected_lengths.value)
   handleFetch()
 }
 
 function filterReadingEase(selectedReadingEase: string[]) {
+  currentPage.value = 1
+
   selected_reading_ease.value = selectedReadingEase
   console.log('Selected reading ease:', selected_reading_ease.value)
   handleFetch()
@@ -180,8 +200,8 @@ function filterReadingEase(selectedReadingEase: string[]) {
     </div>
     <span v-if="loading" class="loading mx-auto loading-xl loading-spinner"></span>
     <div v-if="!loading" class="flex justify-between">
-      Displaying {{ count > 0 ? (currentPage - 1) * booksPerPage + 1 : 0 }} to
-      {{ Math.min(currentPage * booksPerPage, count) }} / {{ count }} books
+      Displaying {{ count > 0 ? indexStart + 1 : 0 }} to {{ Math.min(indexEnd, count) }} /
+      {{ count }} books
 
       <div class="join">
         <button

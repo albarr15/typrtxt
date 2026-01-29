@@ -17,6 +17,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.87.1",
     "@tailwindcss/vite": "^4.1.13",
+    "@vueuse/core": "^14.1.0",
     "daisyui": "^5.1.10",
     "epubjs": "^0.3.93",
     "tailwindcss-animate": "^1.0.7",

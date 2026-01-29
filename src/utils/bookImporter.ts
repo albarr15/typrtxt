@@ -20,6 +20,7 @@ export async function importBooks() {
   try {
     const response = await fetch('/booksList.json')
     const bookPathList: BookListItem[] = await response.json()
+    console.log(bookPathList)
 
     console.log('Processing books ...')
 
@@ -28,6 +29,7 @@ export async function importBooks() {
         console.log(bookPath)
 
         const foundBook = ePub(bookPath.path)
+        console.log('epub instance created for ', bookPath.path)
         await foundBook.ready
 
         console.log('Book is ready ...')

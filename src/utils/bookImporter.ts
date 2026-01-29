@@ -107,22 +107,49 @@ export async function importBooks() {
           continue
         }
 
-        const response = await fetch(coverBlob)
-        const blob = await response.blob()
+        const coverResponse = await fetch(coverBlob)
+        const blob = await coverResponse.blob()
         const coverUrl = URL.createObjectURL(blob)
 
         const coverFileName = `${metadata.identifier}_cover.jpg`
 
-        // const { data: uploadData, error: uploadError } = await supabase.storage
-        //   .from('epub-covers')
-        //   .upload(coverFileName, blob)
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('epub-covers')
+          .upload(coverFileName, blob)
 
-        // if (uploadError) {
-        //   console.error('Error uploading cover for book:', bookPath, uploadError)
-        //   continue
-        // }
+        if (uploadError) {
+          // Check if it's a duplicate error
+          if (uploadError.message.includes('already exists')) {
+            console.log('Cover already exists, using existing:', coverFileName)
+            // get the existing URL
+          } else {
+            console.error('Error uploading cover:', uploadError)
+            continue
+          }
+        }
 
         const { data: urlData } = supabase.storage.from('epub-covers').getPublicUrl(coverFileName)
+
+        const epubResponse = await fetch(bookPath.path)
+        const epubBlob = await epubResponse.blob()
+
+        if (!epubBlob) {
+          console.log('No book found:', bookPath)
+          continue
+        }
+
+        const epubFileName = `${metadata.identifier}.epub`
+
+        const { data: epubUploadData, error: epubUploadError } = await supabase.storage
+          .from('epub-files')
+          .upload(epubFileName, epubBlob)
+
+        if (epubUploadError) {
+          console.error('Error uploading book:', bookPath, epubUploadError)
+          continue
+        }
+
+        const { data: epubUrlData } = supabase.storage.from('epub-files').getPublicUrl(epubFileName)
 
         const { error } = await supabase.from('books').insert({
           identifier: metadata.identifier,
@@ -131,6 +158,7 @@ export async function importBooks() {
           description: metadata.description,
           publisher: metadata.publisher,
           language: metadata.language,
+          path: epubUrlData.publicUrl,
           cover_url: urlData.publicUrl,
           // Add extended metadata
           word_count: extendedMetadata['se:word-count'],
@@ -138,6 +166,13 @@ export async function importBooks() {
           subjects: extendedMetadata.subjects,
           subject: extendedMetadata['se:subject'],
         })
+
+        if (error) {
+          console.error('Database insert error: ', error)
+          continue
+        }
+
+        console.log('Book successfully inserted to books database: ', bookPath.name)
       } catch (error) {
         console.error('Error loading book:', bookPath.name, error)
       }

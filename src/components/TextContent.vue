@@ -120,7 +120,11 @@ const fetchBook = async () => {
 const getChapters = async () => {
   try {
     if (foundBook.value) {
-      bookContent.value = await getEpubChapters(foundBook.value.path)
+      // Fetch the epub file first from supabase
+      const response = await fetch(foundBook.value.path)
+      const bookArrayBuffer = await response.arrayBuffer()
+
+      bookContent.value = await getEpubChapters(bookArrayBuffer)
 
       chapterTitles.value = bookContent.value.map((chapter, idx) => {
         return chapter.title?.replace(/\s+/g, ' ').trim() || `Chapter ${idx + 1}`
